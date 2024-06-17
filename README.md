@@ -1,10 +1,12 @@
-# Geo-Sport app
-Android implementation for https://github.com/Johamatt/RewardRoam-API
+
+
+Android implementation for https://github.com/Johamatt/RR-API
 
 # Installation
 
 ## Prequirements
 - Mapbox account
+- Google account
 - Android studio 
 - JRE 17+
 - SDK 24+
@@ -30,5 +32,12 @@ https://docs.mapbox.com/android/maps/guides/install/
 4. Navigate to «USER_HOME»/.gradle/gradle.properties and add following to make it global gradle variable
 ```
 MAPBOX_DOWNLOADS_TOKEN=sk.1234qwerty....
-
 ```
+
+## Generate Google OAuth client ID
+(This same ID is also required in backend)
+
+1. Visit https://console.cloud.google.com/apis/credentials/ and navigate to Credentials -tab
+2. Press "+ Create Credentials" -> Oauth Client ID
+3. Select Web application and press "Create" using default values.
+4. Copy Client ID and paste it in developer-config.xml as "web_client_id" 
