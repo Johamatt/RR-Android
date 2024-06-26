@@ -1,6 +1,7 @@
 package com.example.sport_geo_app.main
 
 import android.graphics.Color
+import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.view.Gravity
@@ -10,6 +11,7 @@ import android.view.ViewGroup
 import android.widget.Button
 import android.widget.TextView
 import android.widget.Toast
+import androidx.annotation.RequiresApi
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
@@ -44,8 +46,13 @@ import com.android.volley.Request
 import com.android.volley.toolbox.JsonObjectRequest
 import com.android.volley.toolbox.Volley
 import com.example.sport_geo_app.R
+import com.example.sport_geo_app.model.PlaceModel
 import com.example.sport_geo_app.model.UserViewModel
+import com.google.gson.Gson
+import com.mapbox.geojson.Feature
 import org.json.JSONObject
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 
 class MapFragment : Fragment() {
 
@@ -60,18 +67,13 @@ class MapFragment : Fragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-
-        //Initialize userViewModel
-        userViewModel = ViewModelProvider(requireActivity()).get(UserViewModel::class.java)
-        Log.d("asd",userViewModel.userEmail.toString())
-        Log.d("asd",userViewModel.userPoints.toString())
-
-        // initialize view
+        userViewModel = ViewModelProvider(requireActivity())[UserViewModel::class.java]
         val view = inflater.inflate(R.layout.fragment_map, container, false)
         mapView = view.findViewById(R.id.mapView)
         return view
     }
 
+    @RequiresApi(Build.VERSION_CODES.O)
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         locationPermissionHelper = LocationPermissionHelper(WeakReference(requireActivity()))
@@ -96,6 +98,7 @@ class MapFragment : Fragment() {
         }
     }
 
+    @RequiresApi(Build.VERSION_CODES.O)
     private fun initializeMap() {
         mapView.mapboxMap.apply {
             setCamera(CameraOptions.Builder().zoom(10.0).pitch(0.0).build())
@@ -119,6 +122,7 @@ class MapFragment : Fragment() {
         }
     }
 
+    @RequiresApi(Build.VERSION_CODES.O)
     private fun handleMapClick(point: Point) {
         if (!::viewAnnotationManager.isInitialized) {
             return
@@ -171,8 +175,8 @@ class MapFragment : Fragment() {
 
                                 button.setOnClickListener {
                                     val currentLocation = locationListener.getCurrentLocation()
-                                    if (currentLocation != null && coordinates != null) {
-                                        checkProximityAndClaimReward(currentLocation, coordinates)
+                                    if (currentLocation != null) {
+                                        checkProximityAndClaimReward(currentLocation,  values)
                                     } else {
                                         showCustomToast("Unable to get current location")
                                     }
@@ -257,15 +261,17 @@ class MapFragment : Fragment() {
     }
 
 
-    private fun checkProximityAndClaimReward(userCoordinates: Point, markerCoordinates: Point) {
+    @RequiresApi(Build.VERSION_CODES.O)
+    private fun checkProximityAndClaimReward(userCoordinates: Point, values: Feature) {
+        val coordinates = (values.geometry() as Point).coordinates()
+        val properties = Gson().fromJson(values.properties().toString(), PlaceModel::class.java)
         val requestBody = JSONObject().apply {
-            put("userLatitude", 60.250665664)
-            put("userLongitude", 24.839829974)
-            put("markerLatitude", markerCoordinates.latitude())
-            put("markerLongitude", markerCoordinates.longitude())
+            put("userLatitude", 60.250665664) // replace usercoords later
+            put("userLongitude", 24.839829974) // replace usercoords later
+            put("markerLatitude", coordinates[1])
+            put("markerLongitude", coordinates[0])
         }
 
-        Log.d("MapFragment", "nope")
         val request = JsonObjectRequest(
             Request.Method.POST,
             "http://10.0.2.2:3000/places/check-proximity",
@@ -273,7 +279,7 @@ class MapFragment : Fragment() {
             { response ->
                 val isNearby = response.getBoolean("isNearby")
                 if (isNearby) {
-                    claimReward()
+                    claimReward(properties)
                 } else {
                     showCustomToast("You are not nearby the marker")
                 }
@@ -283,17 +289,37 @@ class MapFragment : Fragment() {
                 showCustomToast("Error: ${error.message}")
             }
         )
+        Volley.newRequestQueue(requireContext()).add(request)
+    }
+    @RequiresApi(Build.VERSION_CODES.O)
+    private fun claimReward(properties: PlaceModel) {
+        val userId: Int = userViewModel.userId.value ?: 0
+        val points = properties.points
+        val placeId = properties.place_id
+        val date = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))
+
+        val requestBody = JSONObject().apply {
+            put("user_id", userId)
+            put("points_awarded", points)
+            put("placeId", placeId)
+            put("visit_date", date)
+        }
+
+        val request = JsonObjectRequest(
+            Request.Method.POST,
+            "http://10.0.2.2:3000/visits",
+            requestBody,
+            { response ->
+                showCustomToast("Reward claimed successfully!")
+            },
+            { error ->
+                showCustomToast("Error: ${error.message}")
+            }
+        )
 
         Volley.newRequestQueue(requireContext()).add(request)
     }
 
-    private fun claimReward() {
-        // Implement your reward claiming logic here
-        showCustomToast("Reward claimed successfully!")
-
-
-
-    }
 
     private fun showCustomToast(message: String) {
         val layoutInflater = layoutInflater
