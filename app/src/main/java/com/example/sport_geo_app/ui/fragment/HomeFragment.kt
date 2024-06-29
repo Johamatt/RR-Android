@@ -1,4 +1,4 @@
-package com.example.sport_geo_app.main
+package com.example.sport_geo_app.ui.fragment
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
@@ -12,8 +12,8 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import com.example.sport_geo_app.R
-import com.example.sport_geo_app.auth.LoginActivity
-import com.example.sport_geo_app.model.UserViewModel
+import com.example.sport_geo_app.ui.activity.LoginActivity
+import com.example.sport_geo_app.ui.viewmodel.UserViewModel
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInClient
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions

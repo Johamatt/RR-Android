@@ -1,4 +1,4 @@
-package com.example.sport_geo_app.model
+package com.example.sport_geo_app.data.model
 
 data class PlaceModel(
     val points: Int,

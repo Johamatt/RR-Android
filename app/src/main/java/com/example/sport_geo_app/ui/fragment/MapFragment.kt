@@ -1,9 +1,8 @@
-package com.example.sport_geo_app.main
+package com.example.sport_geo_app.ui.fragment
 
 import android.graphics.Color
 import android.os.Build
 import android.os.Bundle
-import android.util.Log
 import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
@@ -42,12 +41,10 @@ import com.mapbox.maps.viewannotation.ViewAnnotationManager
 import com.mapbox.maps.viewannotation.geometry
 import com.mapbox.maps.viewannotation.viewAnnotationOptions
 import java.lang.ref.WeakReference
-import com.android.volley.Request
-import com.android.volley.toolbox.JsonObjectRequest
-import com.android.volley.toolbox.Volley
 import com.example.sport_geo_app.R
-import com.example.sport_geo_app.model.PlaceModel
-import com.example.sport_geo_app.model.UserViewModel
+import com.example.sport_geo_app.data.model.PlaceModel
+import com.example.sport_geo_app.data.network.NetworkService
+import com.example.sport_geo_app.ui.viewmodel.UserViewModel
 import com.google.gson.Gson
 import com.mapbox.geojson.Feature
 import org.json.JSONObject
@@ -61,16 +58,17 @@ class MapFragment : Fragment() {
     private lateinit var locationPermissionHelper: LocationPermissionHelper
     private lateinit var viewAnnotationManager: ViewAnnotationManager
     private lateinit var userViewModel: UserViewModel
+    private lateinit var networkService: NetworkService
+
 
     override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
+        inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
     ): View? {
         userViewModel = ViewModelProvider(requireActivity())[UserViewModel::class.java]
-        val view = inflater.inflate(R.layout.fragment_map, container, false)
-        mapView = view.findViewById(R.id.mapView)
-        return view
+        networkService = NetworkService(requireContext())
+        return inflater.inflate(R.layout.fragment_map, container, false).apply {
+            mapView = findViewById(R.id.mapView)
+        }
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
@@ -264,60 +262,37 @@ class MapFragment : Fragment() {
     @RequiresApi(Build.VERSION_CODES.O)
     private fun checkProximityAndClaimReward(userCoordinates: Point, values: Feature) {
         val coordinates = (values.geometry() as Point).coordinates()
-        val properties = Gson().fromJson(values.properties().toString(), PlaceModel::class.java)
         val requestBody = JSONObject().apply {
-            put("userLatitude", 60.250665664) // replace usercoords later
-            put("userLongitude", 24.839829974) // replace usercoords later
+            put("userLatitude", 60.250665664) // userCoordinates.latitude()
+            put("userLongitude", 24.839829974) // userCoordinates.longitude()
             put("markerLatitude", coordinates[1])
             put("markerLongitude", coordinates[0])
         }
 
-        val request = JsonObjectRequest(
-            Request.Method.POST,
-            "http://10.0.2.2:3000/places/check-proximity",
-            requestBody,
-            { response ->
-                val isNearby = response.getBoolean("isNearby")
-                if (isNearby) {
-                    claimReward(properties)
-                } else {
-                    showCustomToast("You are not nearby the marker")
-                }
+        networkService.checkProximity(requestBody,
+            onSuccess = { isNearby ->
+                if (isNearby) claimReward(values) else showCustomToast("You are not nearby the marker")
             },
-            { error ->
-                Log.d("MapFragment", "err")
-                showCustomToast("Error: ${error.message}")
+            onError = { error ->
+                showCustomToast("Error: $error")
             }
         )
-        Volley.newRequestQueue(requireContext()).add(request)
     }
     @RequiresApi(Build.VERSION_CODES.O)
-    private fun claimReward(properties: PlaceModel) {
-        val userId: Int = userViewModel.userId.value ?: 0
-        val points = properties.points
-        val placeId = properties.place_id
-        val date = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))
-
+    private fun claimReward(values: Feature) {
+        val properties = Gson().fromJson(values.properties().toString(), PlaceModel::class.java)
+        val userId = userViewModel.userId.value ?: 0
         val requestBody = JSONObject().apply {
             put("user_id", userId)
-            put("points_awarded", points)
-            put("placeId", placeId)
-            put("visit_date", date)
+            put("points_awarded", properties.points)
+            put("placeId", properties.place_id)
+            put("visit_date", LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd")))
         }
 
-        val request = JsonObjectRequest(
-            Request.Method.POST,
-            "http://10.0.2.2:3000/visits",
-            requestBody,
-            { response ->
-                showCustomToast("Reward claimed successfully!")
-            },
-            { error ->
-                showCustomToast("Error: ${error.message}")
-            }
+        networkService.claimReward(requestBody,
+            onSuccess = { showCustomToast("Reward claimed successfully!") },
+            onError = { error -> showCustomToast("Error: $error") }
         )
-
-        Volley.newRequestQueue(requireContext()).add(request)
     }
 
 
@@ -334,7 +309,7 @@ class MapFragment : Fragment() {
         with(Toast(requireContext())) {
             duration = Toast.LENGTH_LONG
             view = layout
-            setGravity(Gravity.CENTER, 0, 0) // Change the position if needed
+            setGravity(Gravity.CENTER, 0, 0)
             show()
         }
     }

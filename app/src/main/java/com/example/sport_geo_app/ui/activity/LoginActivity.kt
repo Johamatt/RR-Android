@@ -1,4 +1,4 @@
-package com.example.sport_geo_app.auth
+package com.example.sport_geo_app.ui.activity
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
@@ -8,8 +8,9 @@ import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import com.example.sport_geo_app.main.MainActivity
+import com.example.sport_geo_app.MainActivity
 import com.example.sport_geo_app.R
+import com.example.sport_geo_app.data.network.AuthService
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount
 import com.google.android.gms.auth.api.signin.GoogleSignInClient
@@ -20,6 +21,9 @@ import okhttp3.*
 import org.json.JSONObject
 import java.io.IOException
 
+// File: app/java/com/yourappname/ui/activity/LoginActivity.kt
+
+
 class LoginActivity : AppCompatActivity() {
 
     private lateinit var gso: GoogleSignInOptions
@@ -29,7 +33,7 @@ class LoginActivity : AppCompatActivity() {
     private lateinit var passwordInput: EditText
     private lateinit var emailLoginBtn: Button
     private lateinit var registerText: TextView
-
+    private val authService = AuthService()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -84,18 +88,15 @@ class LoginActivity : AppCompatActivity() {
         }
     }
 
-
-
     private fun signIn() {
         val signInIntent = gsc.signInIntent
         startActivityForResult(signInIntent, 1000)
     }
 
-
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         if (requestCode == 1000) {
-            val task: Task<GoogleSignInAccount> = GoogleSignIn.getSignedInAccountFromIntent(data)
+            val task = GoogleSignIn.getSignedInAccountFromIntent(data)
             try {
                 val account = task.getResult(ApiException::class.java)
                 val idToken = account?.idToken
@@ -108,68 +109,44 @@ class LoginActivity : AppCompatActivity() {
 
     private fun sendTokenToBackend(idToken: String?) {
         if (idToken != null) {
-            val client = OkHttpClient()
-            val requestBody = FormBody.Builder()
-                .add("idToken", idToken)
-                .build()
-            val request = Request.Builder()
-                .url("http://10.0.2.2:3000/auth/google")
-                .post(requestBody)
-                .build()
-
-            client.newCall(request).enqueue(object : Callback {
-                override fun onFailure(call: Call, e: IOException) {
-                    e.printStackTrace()
-                }
-
-                override fun onResponse(call: Call, response: Response) {
-                    if (response.isSuccessful) {
-                        val responseBody = response.body?.string()
-                        runOnUiThread {
-                            handleSuccessResponse(responseBody)
-                        }
-                    } else {
-                        runOnUiThread {
-                            Toast.makeText(applicationContext, "Authentication failed", Toast.LENGTH_SHORT).show()
-                        }
+            authService.sendTokenToBackend(idToken) { response, error ->
+                if (error != null) {
+                    error.printStackTrace()
+                    runOnUiThread {
+                        Toast.makeText(applicationContext, "Authentication failed", Toast.LENGTH_SHORT).show()
                     }
-                }
-            })
-        }
-    }
-
-    private fun loginWithEmail(email: String, password: String) {
-        val client = OkHttpClient()
-        val requestBody = FormBody.Builder()
-            .add("email", email)
-            .add("password", password)
-            .build()
-        val request = Request.Builder()
-            .url("http://10.0.2.2:3000/auth/login")
-            .post(requestBody)
-            .build()
-
-        client.newCall(request).enqueue(object : Callback {
-            override fun onFailure(call: Call, e: IOException) {
-
-                e.printStackTrace()
-            }
-
-            override fun onResponse(call: Call, response: Response) {
-
-                if (response.isSuccessful) {
+                } else if (response != null && response.isSuccessful) {
                     val responseBody = response.body?.string()
                     runOnUiThread {
                         handleSuccessResponse(responseBody)
                     }
                 } else {
                     runOnUiThread {
-                        handleErrorResponse(response)
+                        Toast.makeText(applicationContext, "Authentication failed", Toast.LENGTH_SHORT).show()
                     }
                 }
             }
+        }
+    }
 
-        })
+    private fun loginWithEmail(email: String, password: String) {
+        authService.loginWithEmail(email, password) { response, error ->
+            if (error != null) {
+                error.printStackTrace()
+                runOnUiThread {
+                    Toast.makeText(applicationContext, "Login failed", Toast.LENGTH_SHORT).show()
+                }
+            } else if (response != null && response.isSuccessful) {
+                val responseBody = response.body?.string()
+                runOnUiThread {
+                    handleSuccessResponse(responseBody)
+                }
+            } else {
+                runOnUiThread {
+                    handleErrorResponse(response)
+                }
+            }
+        }
     }
 
     private fun handleSuccessResponse(responseBody: String?) {
@@ -182,7 +159,6 @@ class LoginActivity : AppCompatActivity() {
                 val userEmail = userJson.getString("email")
                 val userPoints = userJson.getString("points")
 
-                // Save login information to SharedPreferences
                 val sharedPreferences = getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
                 val editor = sharedPreferences.edit()
                 editor.putInt("user_id", userId)
@@ -198,13 +174,12 @@ class LoginActivity : AppCompatActivity() {
         }
     }
 
-
-    private fun handleErrorResponse(response: Response) {
-        val responseBody = response.body?.string()
+    private fun handleErrorResponse(response: Response?) {
+        val responseBody = response?.body?.string()
         val jsonObject = JSONObject(responseBody)
         val errorMessage = jsonObject.getJSONArray("message")
 
-        when (response.code) {
+        when (response?.code) {
             400 -> {
                 displayErrorMessage(errorMessage.toString())
             }
@@ -212,10 +187,11 @@ class LoginActivity : AppCompatActivity() {
                 displayErrorMessage(errorMessage.toString())
             }
             else -> {
-                displayErrorMessage("Authentication failed: ${response.message}")
+                displayErrorMessage("Authentication failed: ${response?.message}")
             }
         }
     }
+
     private fun displayErrorMessage(message: String) {
         Toast.makeText(applicationContext, message, Toast.LENGTH_SHORT).show()
     }
@@ -228,5 +204,4 @@ class LoginActivity : AppCompatActivity() {
         startActivity(intent)
         finish()
     }
-
 }

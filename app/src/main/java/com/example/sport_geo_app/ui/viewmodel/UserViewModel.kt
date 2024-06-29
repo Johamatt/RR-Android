@@ -1,4 +1,4 @@
-package com.example.sport_geo_app.model
+package com.example.sport_geo_app.ui.viewmodel
 
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel

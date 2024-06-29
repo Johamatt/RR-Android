@@ -23,7 +23,7 @@
         android:theme="@style/Theme.Sportgeoapp"
         tools:targetApi="31">
         <activity
-            android:name=".auth.LoginActivity"
+            android:name=".ui.activity.LoginActivity"
             android:exported="true"
             android:theme="@style/Theme.Sportgeoapp">
             <intent-filter>
@@ -32,7 +32,7 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".auth.RegisterActivity"
+            android:name=".ui.activity.RegisterActivity"
             android:exported="true"
             android:theme="@style/Theme.Sportgeoapp">
             <intent-filter>
@@ -43,7 +43,7 @@
 
 
         <activity
-            android:name=".main.MainActivity"
+            android:name=".MainActivity"
             android:exported="true"
             android:theme="@style/Theme.Sportgeoapp">
             <intent-filter>

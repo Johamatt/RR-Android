@@ -1,4 +1,4 @@
-package com.example.sport_geo_app.auth
+package com.example.sport_geo_app.ui.activity
 
 import android.content.Context
 import android.content.Intent
@@ -7,8 +7,9 @@ import android.util.Log
 import android.widget.Button
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import com.example.sport_geo_app.main.MainActivity
+import com.example.sport_geo_app.MainActivity
 import com.example.sport_geo_app.R
+import com.example.sport_geo_app.data.network.AuthService
 import com.google.android.material.textfield.TextInputEditText
 import okhttp3.*
 import org.json.JSONObject
@@ -19,6 +20,7 @@ class RegisterActivity : AppCompatActivity() {
     private lateinit var emailInput: TextInputEditText
     private lateinit var passwordInput: TextInputEditText
     private lateinit var registerBtn: Button
+    private val authService = AuthService()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -51,54 +53,35 @@ class RegisterActivity : AppCompatActivity() {
     }
 
     private fun registerUser(email: String, password: String) {
-        val client = OkHttpClient()
-        val requestBody = FormBody.Builder()
-            .add("email", email)
-            .add("password", password)
-            .build()
-        val request = Request.Builder()
-            .url("http://10.0.2.2:3000/auth/register")
-            .post(requestBody)
-            .build()
-
-        client.newCall(request).enqueue(object : Callback {
-            override fun onFailure(call: Call, e: IOException) {
-
-                e.printStackTrace()
-            }
-
-            override fun onResponse(call: Call, response: Response) {
-                    Log.d("asd", response.body.toString())
-                    Log.d("asd", response.isSuccessful.toString())
-                if (response.isSuccessful) {
-                    val responseBody = response.body?.string()
-                    runOnUiThread {
-                        handleSuccessResponse(responseBody)
-                    }
-                } else {
-                    runOnUiThread {
-                        handleErrorResponse(response)
-                    }
+        authService.registerUser(email, password) { response, error ->
+            if (error != null) {
+                error.printStackTrace()
+                runOnUiThread {
+                    Toast.makeText(applicationContext, "Registration failed", Toast.LENGTH_SHORT).show()
+                }
+            } else if (response != null && response.isSuccessful) {
+                val responseBody = response.body?.string()
+                runOnUiThread {
+                    handleSuccessResponse(responseBody)
+                }
+            } else {
+                runOnUiThread {
+                    handleErrorResponse(response)
                 }
             }
-
-        })
+        }
     }
 
     private fun handleSuccessResponse(responseBody: String?) {
         if (responseBody != null) {
             try {
                 val jsonObject = JSONObject(responseBody)
-                Log.d("asd", jsonObject.toString())
-
                 val userJson = jsonObject.getJSONObject("user")
-
 
                 val userId = userJson.getInt("user_id")
                 val userEmail = userJson.getString("email")
                 val userPoints = userJson.getString("points")
 
-                // Save login information to SharedPreferences
                 val sharedPreferences = getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
                 val editor = sharedPreferences.edit()
                 editor.putInt("user_id", userId)
@@ -114,28 +97,21 @@ class RegisterActivity : AppCompatActivity() {
         }
     }
 
-
-    private fun handleErrorResponse(response: Response) {
-        val responseBody = response.body?.string()
+    private fun handleErrorResponse(response: Response?) {
+        val responseBody = response?.body?.string()
         val jsonObject = JSONObject(responseBody)
         val errorMessage = jsonObject.getJSONArray("message")
 
-        Log.d("asd", response.code.toString())
-        when (response.code) {
-            400 -> {
-                displayErrorMessage(errorMessage.toString())
-            }
-            401 -> {
-                displayErrorMessage(errorMessage.toString())
-            }
-            409 -> {
+        when (response?.code) {
+            400, 401, 409 -> {
                 displayErrorMessage(errorMessage.toString())
             }
             else -> {
-                displayErrorMessage("Authentication failed: ${response.message}")
+                displayErrorMessage("Registration failed: ${response?.message}")
             }
         }
     }
+
     private fun displayErrorMessage(message: String) {
         Toast.makeText(applicationContext, message, Toast.LENGTH_SHORT).show()
     }
