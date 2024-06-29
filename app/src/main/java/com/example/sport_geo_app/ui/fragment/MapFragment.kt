@@ -288,7 +288,7 @@ class MapFragment : Fragment() {
 
         networkService.claimReward(requestBody,
             onSuccess = { showCustomToast("Reward claimed successfully!") },
-            onError = { error -> showCustomToast("Error: $error") }
+            onError = { error -> showCustomToast("$error") }
         )
     }
 
