@@ -3,10 +3,8 @@ package com.example.sport_geo_app
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.ViewModelProvider
 import com.example.sport_geo_app.ui.fragment.HomeFragment
 import com.example.sport_geo_app.ui.fragment.MapFragment
-import com.example.sport_geo_app.ui.viewmodel.UserViewModel
 import com.google.android.material.bottomnavigation.BottomNavigationView
 
 
@@ -17,15 +15,6 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-
-        val userId = intent.getIntExtra("user_id", -1)
-        val userEmail = intent.getStringExtra("user_email")
-        val userPoints = intent.getStringExtra("user_points")
-
-        val userViewModel = ViewModelProvider(this).get(UserViewModel::class.java)
-        userViewModel.setUserId(userId)
-        userViewModel.setUserEmail(userEmail ?: "")
-        userViewModel.setUserPoints(userPoints ?: "")
 
         bottomNavigationView = findViewById(R.id.bottom_navigation)
 
@@ -70,4 +59,3 @@ class MainActivity : AppCompatActivity() {
         transaction.commitNowAllowingStateLoss()
     }
 }
-

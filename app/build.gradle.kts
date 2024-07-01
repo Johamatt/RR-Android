@@ -64,7 +64,7 @@ dependencies {
     implementation ("com.android.volley:volley:1.2.1")
     implementation ("com.google.android.gms:play-services-auth:20.4.0")
     implementation ("com.google.android.material:material:1.9.0")
-
+    implementation("com.google.android.gms:play-services-ads:23.2.0")
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)

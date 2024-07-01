@@ -2,6 +2,7 @@ package com.example.sport_geo_app.ui.fragment
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -14,11 +15,10 @@ import androidx.lifecycle.ViewModelProvider
 import com.example.sport_geo_app.R
 import com.example.sport_geo_app.ui.activity.LoginActivity
 import com.example.sport_geo_app.ui.viewmodel.UserViewModel
+import com.example.sport_geo_app.utils.AdManager
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInClient
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
-import com.google.android.gms.tasks.OnCompleteListener
-
 class HomeFragment : Fragment() {
 
     private lateinit var gso: GoogleSignInOptions
@@ -26,11 +26,21 @@ class HomeFragment : Fragment() {
     private lateinit var signOutBtn: Button
     private lateinit var userViewModel: UserViewModel
 
+    private lateinit var adManager: AdManager
+    private lateinit var loadAdBtn: Button
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
         val view = inflater.inflate(R.layout.fragment_home, container, false)
+
+        adManager = AdManager(requireContext())
+
+        loadAdBtn = view.findViewById(R.id.load_ad_btn)
+        loadAdBtn.setOnClickListener {
+            showRewardedAd()
+        }
 
         gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
             .requestEmail()
@@ -59,20 +69,31 @@ class HomeFragment : Fragment() {
         return view
     }
 
+    private fun showRewardedAd() {
+        adManager.showRewardedAd { rewardItem ->
+            val rewardAmount = rewardItem.amount
+            val rewardType = rewardItem.type
+            Log.d("HomeFragment", "User earned the reward: $rewardAmount $rewardType")
+            // rewardUser(userViewModel.userId.value ?: -1, rewardAmount)
+        }
+    }
+
     private fun signOut() {
-        gsc.signOut().addOnCompleteListener(requireActivity(), OnCompleteListener<Void> { task ->
+        gsc.signOut().addOnCompleteListener(requireActivity()) { task ->
             if (task.isSuccessful) {
                 // Clear SharedPreferences
                 val sharedPreferences = requireActivity().getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
-                val editor = sharedPreferences.edit()
-                editor.clear()
-                editor.apply()
+                with(sharedPreferences.edit()) {
+                    clear()
+                    apply()
+                }
 
                 activity?.finish()
                 startActivity(Intent(activity, LoginActivity::class.java))
             } else {
                 Toast.makeText(requireContext(), "Sign out failed", Toast.LENGTH_SHORT).show()
             }
-        })
+        }
     }
 }
+
