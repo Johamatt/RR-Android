@@ -1,8 +1,10 @@
 package com.example.sport_geo_app.ui.fragment
 
+import android.content.Context
 import android.graphics.Color
 import android.os.Build
 import android.os.Bundle
+import android.util.Log
 import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
@@ -12,6 +14,7 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import com.example.sport_geo_app.utils.LocationListener
 import com.example.sport_geo_app.utils.BitmapUtils
@@ -73,6 +76,10 @@ class MapFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        val sharedPreferences = requireActivity().getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
+        val userCountry = sharedPreferences.getString("user_country", "Finland") ?: "Finland"
+        val userId = sharedPreferences.getInt("user_id", -1)
+
         locationPermissionHelper = LocationPermissionHelper(WeakReference(requireActivity()))
         locationPermissionHelper.checkPermissions {
             initializeMap()
@@ -187,9 +194,13 @@ class MapFragment : Fragment() {
 
 
     private fun addClusteredGeoJsonSource(style: Style) {
+
+        val sharedPreferences = requireActivity().getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
+        val userCountry = sharedPreferences.getString("user_country", "Finland") ?: "Finland"
+
         style.addSource(
             geoJsonSource(GEOJSON_SOURCE_ID) {
-                data("http://10.0.2.2:3000/places")
+                data("http://10.0.2.2:3000/places/country/$userCountry")
                 cluster(true)
                 maxzoom(14)
                 clusterRadius(50)
@@ -279,7 +290,10 @@ class MapFragment : Fragment() {
 
     private fun claimReward(values: Feature) {
         val properties = Gson().fromJson(values.properties().toString(), PlaceModel::class.java)
-        val userId = userViewModel.userId.value ?: 0
+        val sharedPreferences = requireActivity().getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
+        val userId = sharedPreferences.getInt("user_id", -1)
+
+
         val requestBody = JSONObject().apply {
             put("user_id", userId)
             put("points_awarded", properties.points)

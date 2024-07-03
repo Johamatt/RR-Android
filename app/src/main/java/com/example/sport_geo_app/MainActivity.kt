@@ -8,14 +8,24 @@ import com.example.sport_geo_app.ui.fragment.MapFragment
 import com.google.android.material.bottomnavigation.BottomNavigationView
 
 
-class MainActivity : AppCompatActivity() {
+import android.content.Context
+import android.content.Intent
+import android.util.Log
+import androidx.lifecycle.Observer
+import androidx.lifecycle.ViewModelProvider
+import com.example.sport_geo_app.ui.activity.SettingsActivity
+import com.example.sport_geo_app.ui.viewmodel.UserViewModel
 
+
+class MainActivity : AppCompatActivity() {
+    private lateinit var viewModel: UserViewModel
     private lateinit var bottomNavigationView: BottomNavigationView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
+        viewModel = ViewModelProvider(this).get(UserViewModel::class.java)
         bottomNavigationView = findViewById(R.id.bottom_navigation)
 
         bottomNavigationView.setOnItemSelectedListener { menuItem ->
@@ -33,7 +43,16 @@ class MainActivity : AppCompatActivity() {
         }
 
         if (savedInstanceState == null) {
-            bottomNavigationView.selectedItemId = R.id.bottom_home
+            // Check if country is defined in SharedPreferences
+            val sharedPreferences = getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
+            val userCountry = sharedPreferences.getString("user_country", null)
+
+            if (userCountry.isNullOrEmpty()) {
+                navigateToCountrySelection()
+            } else {
+                // User country is defined, so select the home fragment
+                bottomNavigationView.selectedItemId = R.id.bottom_home
+            }
         }
     }
 
@@ -53,9 +72,14 @@ class MainActivity : AppCompatActivity() {
         } else {
             transaction.show(fragmentTemp)
         }
-
         transaction.setPrimaryNavigationFragment(fragmentTemp)
         transaction.setReorderingAllowed(true)
-        transaction.commitNowAllowingStateLoss()
+        transaction.commit()
+    }
+
+    private fun navigateToCountrySelection() {
+        val intent = Intent(this, SettingsActivity::class.java)
+        startActivity(intent)
+        finish()
     }
 }

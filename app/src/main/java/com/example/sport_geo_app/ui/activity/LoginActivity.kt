@@ -2,15 +2,20 @@ package com.example.sport_geo_app.ui.activity
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.widget.Button
 import android.widget.EditText
 import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.ViewModelStoreOwner
 import com.example.sport_geo_app.MainActivity
 import com.example.sport_geo_app.R
 import com.example.sport_geo_app.data.network.AuthService
+import com.example.sport_geo_app.ui.viewmodel.UserViewModel
+import com.example.sport_geo_app.ui.viewmodel.ViewModelStoreProvider
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount
 import com.google.android.gms.auth.api.signin.GoogleSignInClient
@@ -34,17 +39,22 @@ class LoginActivity : AppCompatActivity() {
     private lateinit var emailLoginBtn: Button
     private lateinit var registerText: TextView
     private val authService = AuthService()
+    private lateinit var viewModel: UserViewModel // Add this
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_login)
+
+        viewModel = ViewModelProvider(this, ViewModelProvider.AndroidViewModelFactory(application)).get(UserViewModel::class.java)
 
         val sharedPreferences = getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
         if (sharedPreferences.contains("user_id")) {
             val userId = sharedPreferences.getInt("user_id", -1)
             val userEmail = sharedPreferences.getString("user_email", "")
             val userPoints = sharedPreferences.getString("user_points", "")
+            val userCountry = sharedPreferences.getString("user_country", null)
             if (userId != -1 && !userEmail.isNullOrEmpty() && !userPoints.isNullOrEmpty()) {
+                Log.d("LoginActivity", userCountry.toString())
                 navigateToMainActivity(userId, userEmail, userPoints!!)
                 return
             }
@@ -158,13 +168,23 @@ class LoginActivity : AppCompatActivity() {
                 val userId = userJson.getInt("user_id")
                 val userEmail = userJson.getString("email")
                 val userPoints = userJson.getString("points")
+                val userCountry = if (!userJson.isNull("country")) {
+                    userJson.getString("country")
+                } else {
+                    null
+                }
 
+
+                // Store user data in SharedPreferences
                 val sharedPreferences = getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
-                val editor = sharedPreferences.edit()
-                editor.putInt("user_id", userId)
-                editor.putString("user_email", userEmail)
-                editor.putString("user_points", userPoints)
-                editor.apply()
+                with(sharedPreferences.edit()) {
+                    putInt("user_id", userId)
+                    putString("user_email", userEmail)
+                    putString("user_points", userPoints)
+                    putString("user_country", userCountry)
+                    apply()
+                }
+
 
                 navigateToMainActivity(userId, userEmail, userPoints)
             } catch (e: Exception) {
@@ -205,3 +225,4 @@ class LoginActivity : AppCompatActivity() {
         finish()
     }
 }
+

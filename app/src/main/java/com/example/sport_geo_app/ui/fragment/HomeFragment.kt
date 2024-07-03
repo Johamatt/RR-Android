@@ -24,7 +24,6 @@ class HomeFragment : Fragment() {
     private lateinit var gso: GoogleSignInOptions
     private lateinit var gsc: GoogleSignInClient
     private lateinit var signOutBtn: Button
-    private lateinit var userViewModel: UserViewModel
 
     private lateinit var adManager: AdManager
     private lateinit var loadAdBtn: Button
@@ -52,19 +51,15 @@ class HomeFragment : Fragment() {
             signOut()
         }
 
-        userViewModel = ViewModelProvider(requireActivity()).get(UserViewModel::class.java)
+        // Update UI based on SharedPreferences
+        val sharedPreferences = requireActivity().getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
+        val userId = sharedPreferences.getInt("user_id", -1)
+        val userEmail = sharedPreferences.getString("user_email", "")
+        val userPoints = sharedPreferences.getString("user_points", "")
 
-        userViewModel.userId.observe(viewLifecycleOwner, Observer { userId ->
-            view.findViewById<TextView>(R.id.user_id_text_view).text = userId.toString()
-        })
-
-        userViewModel.userEmail.observe(viewLifecycleOwner, Observer { userEmail ->
-            view.findViewById<TextView>(R.id.user_email_text_view).text = userEmail
-        })
-
-        userViewModel.userPoints.observe(viewLifecycleOwner, Observer { userPoints ->
-            view.findViewById<TextView>(R.id.user_points_text_view).text = userPoints
-        })
+        view.findViewById<TextView>(R.id.user_id_text_view).text = userId.toString()
+        view.findViewById<TextView>(R.id.user_email_text_view).text = userEmail
+        view.findViewById<TextView>(R.id.user_points_text_view).text = userPoints
 
         return view
     }
@@ -74,7 +69,7 @@ class HomeFragment : Fragment() {
             val rewardAmount = rewardItem.amount
             val rewardType = rewardItem.type
             Log.d("HomeFragment", "User earned the reward: $rewardAmount $rewardType")
-            // rewardUser(userViewModel.userId.value ?: -1, rewardAmount)
+            // rewardUser(userId, rewardAmount) // Example usage of userId
         }
     }
 
@@ -96,4 +91,3 @@ class HomeFragment : Fragment() {
         }
     }
 }
-

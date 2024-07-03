@@ -7,24 +7,28 @@ import android.util.Log
 import android.widget.Button
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.ViewModelProvider
 import com.example.sport_geo_app.MainActivity
 import com.example.sport_geo_app.R
 import com.example.sport_geo_app.data.network.AuthService
+import com.example.sport_geo_app.ui.viewmodel.UserViewModel
 import com.google.android.material.textfield.TextInputEditText
 import okhttp3.*
 import org.json.JSONObject
 import java.io.IOException
 
 class RegisterActivity : AppCompatActivity() {
-
+    private lateinit var viewModel: UserViewModel
     private lateinit var emailInput: TextInputEditText
     private lateinit var passwordInput: TextInputEditText
     private lateinit var registerBtn: Button
     private val authService = AuthService()
 
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_register)
+        viewModel = ViewModelProvider(this).get(UserViewModel::class.java)
 
         val sharedPreferences = getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
         if (sharedPreferences.contains("user_id")) {
@@ -83,11 +87,13 @@ class RegisterActivity : AppCompatActivity() {
                 val userPoints = userJson.getString("points")
 
                 val sharedPreferences = getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
-                val editor = sharedPreferences.edit()
-                editor.putInt("user_id", userId)
-                editor.putString("user_email", userEmail)
-                editor.putString("user_points", userPoints)
-                editor.apply()
+                with(sharedPreferences.edit()) {
+                    putInt("user_id", userId)
+                    putString("user_email", userEmail)
+                    putString("user_points", userPoints)
+                    putString("user_country", null)
+                    apply()
+                }
 
                 navigateToMainActivity(userId, userEmail, userPoints)
             } catch (e: Exception) {
