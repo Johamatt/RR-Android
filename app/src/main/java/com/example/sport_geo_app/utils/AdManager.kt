@@ -28,7 +28,7 @@ class AdManager(private val context: Context) {
         val adRequest = AdRequest.Builder().build()  // TODO replace google test ad unit ID
         RewardedAd.load(context, "ca-app-pub-3940256099942544/5224354917", adRequest, object : RewardedAdLoadCallback() {
             override fun onAdFailedToLoad(adError: LoadAdError) {
-                adError?.toString()?.let { Log.d(TAG, it) }
+                adError.toString().let { Log.d(TAG, it) }
                 rewardedAd = null
             }
 

@@ -10,8 +10,6 @@ import com.google.android.material.bottomnavigation.BottomNavigationView
 
 import android.content.Context
 import android.content.Intent
-import android.util.Log
-import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import com.example.sport_geo_app.ui.activity.SettingsActivity
 import com.example.sport_geo_app.ui.viewmodel.UserViewModel
@@ -25,7 +23,7 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        viewModel = ViewModelProvider(this).get(UserViewModel::class.java)
+        viewModel = ViewModelProvider(this)[UserViewModel::class.java]
         bottomNavigationView = findViewById(R.id.bottom_navigation)
 
         bottomNavigationView.setOnItemSelectedListener { menuItem ->

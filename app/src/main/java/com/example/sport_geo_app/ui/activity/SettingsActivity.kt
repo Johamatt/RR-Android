@@ -12,6 +12,7 @@ import com.example.sport_geo_app.MainActivity
 import com.example.sport_geo_app.R
 import okhttp3.*
 import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.RequestBody.Companion.toRequestBody
 import org.json.JSONObject
 import java.io.IOException
 
@@ -60,7 +61,8 @@ class SettingsActivity : AppCompatActivity() {
         val url = "http://10.0.2.2:3000/users/$userId/country"
         val json = JSONObject()
         json.put("country", country)
-        val requestBody = RequestBody.create("application/json; charset=utf-8".toMediaType(), json.toString())
+        val requestBody =
+            json.toString().toRequestBody("application/json; charset=utf-8".toMediaType())
 
         val request = Request.Builder()
             .url(url)

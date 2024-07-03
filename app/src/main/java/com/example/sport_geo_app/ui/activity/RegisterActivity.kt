@@ -3,7 +3,6 @@ package com.example.sport_geo_app.ui.activity
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
-import android.util.Log
 import android.widget.Button
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
@@ -15,7 +14,6 @@ import com.example.sport_geo_app.ui.viewmodel.UserViewModel
 import com.google.android.material.textfield.TextInputEditText
 import okhttp3.*
 import org.json.JSONObject
-import java.io.IOException
 
 class RegisterActivity : AppCompatActivity() {
     private lateinit var viewModel: UserViewModel
@@ -28,7 +26,7 @@ class RegisterActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_register)
-        viewModel = ViewModelProvider(this).get(UserViewModel::class.java)
+        viewModel = ViewModelProvider(this)[UserViewModel::class.java]
 
         val sharedPreferences = getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
         if (sharedPreferences.contains("user_id")) {
@@ -36,7 +34,7 @@ class RegisterActivity : AppCompatActivity() {
             val userEmail = sharedPreferences.getString("user_email", "")
             val userPoints = sharedPreferences.getString("user_points", "")
             if (userId != -1 && !userEmail.isNullOrEmpty() && !userPoints.isNullOrEmpty()) {
-                navigateToMainActivity(userId, userEmail, userPoints!!)
+                navigateToMainActivity(userId, userEmail, userPoints)
                 return
             }
         }
@@ -105,16 +103,33 @@ class RegisterActivity : AppCompatActivity() {
 
     private fun handleErrorResponse(response: Response?) {
         val responseBody = response?.body?.string()
-        val jsonObject = JSONObject(responseBody)
-        val errorMessage = jsonObject.getJSONArray("message")
 
-        when (response?.code) {
-            400, 401, 409 -> {
-                displayErrorMessage(errorMessage.toString())
+        responseBody?.let { body ->
+            val jsonObject = JSONObject(body)
+            val errorArray = jsonObject.getJSONArray("message")
+
+            val errorMessage = StringBuilder()
+            for (i in 0 until errorArray.length()) {
+                errorMessage.append(errorArray.getString(i))
+                if (i < errorArray.length() - 1) {
+                    errorMessage.append(", ")
+                }
             }
-            else -> {
-                displayErrorMessage("Registration failed: ${response?.message}")
+
+            when (response.code) {
+                400 -> {
+                    displayErrorMessage(errorMessage.toString())
+                }
+                401 -> {
+                    displayErrorMessage(errorMessage.toString())
+                }
+                else -> {
+                    displayErrorMessage("Authentication failed: ${response.message}")
+                }
             }
+        } ?: run {
+            // Handle case where responseBody is null
+            displayErrorMessage("Response body is null")
         }
     }
 

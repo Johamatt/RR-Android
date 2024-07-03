@@ -1,4 +1,5 @@
 package com.example.sport_geo_app.ui.activity
+import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
@@ -8,26 +9,20 @@ import android.widget.EditText
 import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.ViewModelStoreOwner
 import com.example.sport_geo_app.MainActivity
 import com.example.sport_geo_app.R
 import com.example.sport_geo_app.data.network.AuthService
 import com.example.sport_geo_app.ui.viewmodel.UserViewModel
-import com.example.sport_geo_app.ui.viewmodel.ViewModelStoreProvider
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount
 import com.google.android.gms.auth.api.signin.GoogleSignInClient
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.common.api.ApiException
-import com.google.android.gms.tasks.Task
 import okhttp3.*
 import org.json.JSONObject
-import java.io.IOException
-
-// File: app/java/com/yourappname/ui/activity/LoginActivity.kt
-
 
 class LoginActivity : AppCompatActivity() {
 
@@ -45,7 +40,7 @@ class LoginActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_login)
 
-        viewModel = ViewModelProvider(this, ViewModelProvider.AndroidViewModelFactory(application)).get(UserViewModel::class.java)
+        viewModel = ViewModelProvider(this, ViewModelProvider.AndroidViewModelFactory(application))[UserViewModel::class.java]
 
         val sharedPreferences = getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
         if (sharedPreferences.contains("user_id")) {
@@ -55,7 +50,7 @@ class LoginActivity : AppCompatActivity() {
             val userCountry = sharedPreferences.getString("user_country", null)
             if (userId != -1 && !userEmail.isNullOrEmpty() && !userPoints.isNullOrEmpty()) {
                 Log.d("LoginActivity", userCountry.toString())
-                navigateToMainActivity(userId, userEmail, userPoints!!)
+                navigateToMainActivity(userId, userEmail, userPoints)
                 return
             }
         }
@@ -100,9 +95,11 @@ class LoginActivity : AppCompatActivity() {
 
     private fun signIn() {
         val signInIntent = gsc.signInIntent
-        startActivityForResult(signInIntent, 1000)
+        signInLauncher.launch(signInIntent)
     }
 
+
+    @Deprecated("This declaration overrides deprecated member but not marked as deprecated itself. See https://youtrack.jetbrains.com/issue/KT-47902 for details")
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         if (requestCode == 1000) {
@@ -196,18 +193,47 @@ class LoginActivity : AppCompatActivity() {
 
     private fun handleErrorResponse(response: Response?) {
         val responseBody = response?.body?.string()
-        val jsonObject = JSONObject(responseBody)
-        val errorMessage = jsonObject.getJSONArray("message")
 
-        when (response?.code) {
-            400 -> {
-                displayErrorMessage(errorMessage.toString())
+        responseBody?.let { body ->
+            val jsonObject = JSONObject(body)
+            val errorArray = jsonObject.getJSONArray("message")
+
+            val errorMessage = StringBuilder()
+            for (i in 0 until errorArray.length()) {
+                errorMessage.append(errorArray.getString(i))
+                if (i < errorArray.length() - 1) {
+                    errorMessage.append(", ")
+                }
             }
-            401 -> {
-                displayErrorMessage(errorMessage.toString())
+
+            when (response.code) {
+                400 -> {
+                    displayErrorMessage(errorMessage.toString())
+                }
+                401 -> {
+                    displayErrorMessage(errorMessage.toString())
+                }
+                else -> {
+                    displayErrorMessage("Authentication failed: ${response.message}")
+                }
             }
-            else -> {
-                displayErrorMessage("Authentication failed: ${response?.message}")
+        } ?: run {
+            // Handle case where responseBody is null
+            displayErrorMessage("Response body is null")
+        }
+    }
+
+    private val signInLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+        if (result.resultCode == Activity.RESULT_OK) {
+            val data: Intent? = result.data
+            // Handle the result here
+            val task = GoogleSignIn.getSignedInAccountFromIntent(data)
+            try {
+                val account = task.getResult(ApiException::class.java)
+                val idToken = account?.idToken
+                sendTokenToBackend(idToken)
+            } catch (e: ApiException) {
+                Toast.makeText(applicationContext, "Something went wrong", Toast.LENGTH_SHORT).show()
             }
         }
     }

@@ -2,9 +2,7 @@ package com.example.sport_geo_app.ui.fragment
 
 import android.content.Context
 import android.graphics.Color
-import android.os.Build
 import android.os.Bundle
-import android.util.Log
 import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
@@ -14,7 +12,6 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import com.example.sport_geo_app.utils.LocationListener
 import com.example.sport_geo_app.utils.BitmapUtils
@@ -50,8 +47,6 @@ import com.example.sport_geo_app.ui.viewmodel.UserViewModel
 import com.google.gson.Gson
 import com.mapbox.geojson.Feature
 import org.json.JSONObject
-import java.time.LocalDateTime
-import java.time.format.DateTimeFormatter
 
 class MapFragment : Fragment() {
 
@@ -76,16 +71,14 @@ class MapFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        val sharedPreferences = requireActivity().getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
-        val userCountry = sharedPreferences.getString("user_country", "Finland") ?: "Finland"
-        val userId = sharedPreferences.getInt("user_id", -1)
-
         locationPermissionHelper = LocationPermissionHelper(WeakReference(requireActivity()))
         locationPermissionHelper.checkPermissions {
             initializeMap()
         }
     }
 
+
+    @Deprecated("This declaration overrides deprecated member but not marked as deprecated itself. Please add @Deprecated annotation or suppress. See https://youtrack.jetbrains.com/issue/KT-47902 for details")
     override fun onRequestPermissionsResult(
         requestCode: Int,
         permissions: Array<String>,
@@ -141,7 +134,6 @@ class MapFragment : Fragment() {
                 val values = feature.queriedFeature.feature
                 when (layer) {
                     "clusters" -> {
-                        if (values != null) {
                             val coordinates = values.geometry() as? Point
                             coordinates?.let {
                                 val currentZoom = mapView.mapboxMap.cameraState.zoom
@@ -157,11 +149,10 @@ class MapFragment : Fragment() {
                                         .build()
                                 )
                             }
-                        }
                     }
 
                     "unclustered-points" -> {
-                        if (values != null) {
+
                             val coordinates = values.geometry() as? Point
                             coordinates?.let {
                                 val name = values.getStringProperty("name") ?: ""
@@ -185,7 +176,7 @@ class MapFragment : Fragment() {
                                     }
                                 }
                             }
-                        }
+
                     }
                 }
             }
@@ -302,8 +293,9 @@ class MapFragment : Fragment() {
 
         networkService.claimReward(requestBody,
             onSuccess = { showCustomToast("Reward claimed successfully!") },
-            onError = { error -> showCustomToast("$error") }
+            onError = { error -> showCustomToast(error) }
         )
+
     }
 
 
