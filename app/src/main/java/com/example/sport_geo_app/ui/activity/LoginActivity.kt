@@ -33,13 +33,14 @@ class LoginActivity : AppCompatActivity() {
     private lateinit var passwordInput: EditText
     private lateinit var emailLoginBtn: Button
     private lateinit var registerText: TextView
-    private val authService = AuthService()
-    private lateinit var viewModel: UserViewModel // Add this
+    private lateinit var authService: AuthService
+
+    private lateinit var viewModel: UserViewModel
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        authService = AuthService(this)
         setContentView(R.layout.activity_login)
-
         viewModel = ViewModelProvider(this, ViewModelProvider.AndroidViewModelFactory(application))[UserViewModel::class.java]
 
         val sharedPreferences = getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
@@ -62,7 +63,7 @@ class LoginActivity : AppCompatActivity() {
         registerText = findViewById(R.id.register_btn)
 
         gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-            .requestIdToken(getString(R.string.web_client_id))
+            .requestIdToken(getString(R.string.WEB_CLIENT_ID))
             .requestEmail()
             .build()
 

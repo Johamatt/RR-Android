@@ -5,15 +5,18 @@ import android.util.Log
 import com.android.volley.Request
 import com.android.volley.toolbox.JsonObjectRequest
 import com.android.volley.toolbox.Volley
+import com.example.sport_geo_app.R
 import org.json.JSONException
 import org.json.JSONObject
 
 class NetworkService(private val context: Context) {
 
+    val webClientId = context.getString(R.string.WEB_CLIENT_ID)
+    val EC2PublicIP = context.getString(R.string.EC2_PUBLIC_IP)
     fun checkProximity(requestBody: JSONObject, onSuccess: (Boolean) -> Unit, onError: (String) -> Unit) {
         val request = JsonObjectRequest(
             Request.Method.POST,
-            "http://10.0.2.2:3000/places/check-proximity",
+            "$EC2PublicIP/places/check-proximity",
             requestBody,
             { response ->
                 val isNearby = response.getBoolean("isNearby")
@@ -43,7 +46,7 @@ class NetworkService(private val context: Context) {
     fun claimReward(requestBody: JSONObject, onSuccess: () -> Unit, onError: (String) -> Unit) {
         val request = JsonObjectRequest(
             Request.Method.POST,
-            "http://10.0.2.2:3000/visits",
+            "$EC2PublicIP/visits",
             requestBody,
             { response ->
                 onSuccess()

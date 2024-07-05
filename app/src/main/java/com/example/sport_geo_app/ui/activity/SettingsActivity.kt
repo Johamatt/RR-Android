@@ -57,8 +57,8 @@ class SettingsActivity : AppCompatActivity() {
             Toast.makeText(this, "User ID not found", Toast.LENGTH_SHORT).show()
             return
         }
+        val url = "${getString(R.string.EC2_PUBLIC_IP)}/users/$userId/country"
 
-        val url = "http://10.0.2.2:3000/users/$userId/country"
         val json = JSONObject()
         json.put("country", country)
         val requestBody =

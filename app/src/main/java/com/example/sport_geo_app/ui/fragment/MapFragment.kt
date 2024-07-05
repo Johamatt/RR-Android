@@ -13,6 +13,7 @@ import android.widget.Toast
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
+import com.example.sport_geo_app.BuildConfig
 import com.example.sport_geo_app.utils.LocationListener
 import com.example.sport_geo_app.utils.BitmapUtils
 import com.example.sport_geo_app.utils.LocationPermissionHelper
@@ -191,7 +192,7 @@ class MapFragment : Fragment() {
 
         style.addSource(
             geoJsonSource(GEOJSON_SOURCE_ID) {
-                data("http://10.0.2.2:3000/places/country/$userCountry")
+                data("${getString(R.string.EC2_PUBLIC_IP)}/places/country/$userCountry")
                 cluster(true)
                 maxzoom(14)
                 clusterRadius(50)

@@ -6,6 +6,7 @@ plugins {
 android {
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 
     composeOptions {
@@ -15,6 +16,7 @@ android {
     compileSdk = 34
 
     defaultConfig {
+        manifestPlaceholders["ADMOB_APP_ID"] = "ca-app-pub-1756439763011964~9652004324"
         applicationId = "com.example.sport_geo_app"
         minSdk = 24
         targetSdk = 34

@@ -20,11 +20,12 @@ class RegisterActivity : AppCompatActivity() {
     private lateinit var emailInput: TextInputEditText
     private lateinit var passwordInput: TextInputEditText
     private lateinit var registerBtn: Button
-    private val authService = AuthService()
+    private lateinit var authService: AuthService
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        authService = AuthService(this)
         setContentView(R.layout.activity_register)
         viewModel = ViewModelProvider(this)[UserViewModel::class.java]
 
