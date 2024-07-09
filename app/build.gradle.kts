@@ -59,6 +59,9 @@ android {
 
 dependencies {
 
+    implementation ("androidx.security:security-crypto:1.1.0-alpha03")
+
+
     implementation("com.mapbox.maps:android:11.2.0")
     implementation ("com.squareup.retrofit2:retrofit:2.9.0")
     implementation ("com.squareup.retrofit2:converter-gson:2.9.0")

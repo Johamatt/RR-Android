@@ -1,8 +1,9 @@
 package com.example.sport_geo_app.ui.fragment
 
-import android.content.Context
+import android.content.SharedPreferences
 import android.graphics.Color
 import android.os.Bundle
+import android.util.Log
 import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
@@ -45,6 +46,7 @@ import com.example.sport_geo_app.R
 import com.example.sport_geo_app.data.model.PlaceModel
 import com.example.sport_geo_app.data.network.NetworkService
 import com.example.sport_geo_app.ui.viewmodel.UserViewModel
+import com.example.sport_geo_app.utils.EncryptedPreferencesUtil
 import com.google.gson.Gson
 import com.mapbox.geojson.Feature
 import org.json.JSONObject
@@ -57,11 +59,12 @@ class MapFragment : Fragment() {
     private lateinit var viewAnnotationManager: ViewAnnotationManager
     private lateinit var userViewModel: UserViewModel
     private lateinit var networkService: NetworkService
-
+    private lateinit var encryptedSharedPreferences: SharedPreferences
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
     ): View? {
+        encryptedSharedPreferences = EncryptedPreferencesUtil.getEncryptedSharedPreferences(requireContext())
         userViewModel = ViewModelProvider(requireActivity())[UserViewModel::class.java]
         networkService = NetworkService(requireContext())
         return inflater.inflate(R.layout.fragment_map, container, false).apply {
@@ -187,15 +190,17 @@ class MapFragment : Fragment() {
 
     private fun addClusteredGeoJsonSource(style: Style) {
 
-        val sharedPreferences = requireActivity().getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
-        val userCountry = sharedPreferences.getString("user_country", "Finland") ?: "Finland"
+        val userCountry = encryptedSharedPreferences.getString("user_country", null)
+        Log.d("MapFragment", userCountry.toString())
 
+        // TODO add bearer token
         style.addSource(
             geoJsonSource(GEOJSON_SOURCE_ID) {
                 data("${getString(R.string.EC2_PUBLIC_IP)}/places/country/$userCountry")
                 cluster(true)
                 maxzoom(14)
                 clusterRadius(50)
+
             }
         )
 
@@ -282,9 +287,7 @@ class MapFragment : Fragment() {
 
     private fun claimReward(values: Feature) {
         val properties = Gson().fromJson(values.properties().toString(), PlaceModel::class.java)
-        val sharedPreferences = requireActivity().getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
-        val userId = sharedPreferences.getInt("user_id", -1)
-
+        val userId = encryptedSharedPreferences.getInt("user_id", -1)
 
         val requestBody = JSONObject().apply {
             put("user_id", userId)

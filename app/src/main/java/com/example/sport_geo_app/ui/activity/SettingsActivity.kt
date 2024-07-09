@@ -1,8 +1,9 @@
 package com.example.sport_geo_app.ui.activity
 
-import android.content.Context
 import android.content.Intent
+import android.content.SharedPreferences
 import android.os.Bundle
+import android.util.Log
 import android.widget.ArrayAdapter
 import android.widget.Button
 import android.widget.Spinner
@@ -10,6 +11,7 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.example.sport_geo_app.MainActivity
 import com.example.sport_geo_app.R
+import com.example.sport_geo_app.utils.EncryptedPreferencesUtil
 import okhttp3.*
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.RequestBody.Companion.toRequestBody
@@ -21,6 +23,7 @@ class SettingsActivity : AppCompatActivity() {
     private lateinit var countrySpinner: Spinner
     private lateinit var saveCountryBtn: Button
     private val client = OkHttpClient()
+    private lateinit var encryptedSharedPreferences: SharedPreferences
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -34,8 +37,10 @@ class SettingsActivity : AppCompatActivity() {
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
         countrySpinner.adapter = adapter
 
-        val sharedPreferences = getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
-        val userCountry = sharedPreferences.getString("user_country", null)
+        encryptedSharedPreferences = EncryptedPreferencesUtil.getEncryptedSharedPreferences(this)
+
+
+        val userCountry = encryptedSharedPreferences.getString("user_country", null)
         userCountry?.let {
             val position = countries.indexOf(it)
             if (position != -1) {
@@ -50,14 +55,14 @@ class SettingsActivity : AppCompatActivity() {
     }
 
     private fun save(country: String) {
-        val sharedPreferences = getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
-        val userId = sharedPreferences.getInt("user_id", -1)
-
-        val token = sharedPreferences.getString("access_token", null)
+        val userId = encryptedSharedPreferences.getInt("user_id", -1)
+        val token = encryptedSharedPreferences.getString("jwtToken", null)
+        Log.d("SettingsActivity", token.toString())
         if (userId == -1 || token == null) {
             Toast.makeText(this, "User ID or JWT Token not found", Toast.LENGTH_SHORT).show()
             return
         }
+
         val url = "${getString(R.string.EC2_PUBLIC_IP)}/users/$userId/country"
 
         val json = JSONObject()
@@ -81,7 +86,7 @@ class SettingsActivity : AppCompatActivity() {
             override fun onResponse(call: Call, response: Response) {
                 if (response.isSuccessful) {
                     runOnUiThread {
-                        val editor = sharedPreferences.edit()
+                        val editor = encryptedSharedPreferences.edit()
                         editor.putString("user_country", country)
                         editor.apply()
 

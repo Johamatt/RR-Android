@@ -1,7 +1,7 @@
 package com.example.sport_geo_app.ui.activity
 import android.app.Activity
-import android.content.Context
 import android.content.Intent
+import android.content.SharedPreferences
 import android.os.Bundle
 import android.util.Log
 import android.widget.Button
@@ -16,8 +16,8 @@ import com.example.sport_geo_app.MainActivity
 import com.example.sport_geo_app.R
 import com.example.sport_geo_app.data.network.AuthService
 import com.example.sport_geo_app.ui.viewmodel.UserViewModel
+import com.example.sport_geo_app.utils.EncryptedPreferencesUtil
 import com.google.android.gms.auth.api.signin.GoogleSignIn
-import com.google.android.gms.auth.api.signin.GoogleSignInAccount
 import com.google.android.gms.auth.api.signin.GoogleSignInClient
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.common.api.ApiException
@@ -34,63 +34,59 @@ class LoginActivity : AppCompatActivity() {
     private lateinit var emailLoginBtn: Button
     private lateinit var registerText: TextView
     private lateinit var authService: AuthService
-
     private lateinit var viewModel: UserViewModel
+    private lateinit var encryptedSharedPreferences: SharedPreferences
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        authService = AuthService(this)
         setContentView(R.layout.activity_login)
-        viewModel = ViewModelProvider(this, ViewModelProvider.AndroidViewModelFactory(application))[UserViewModel::class.java]
 
-        val sharedPreferences = getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
-        if (sharedPreferences.contains("jwtToken")) {
-            val userId = sharedPreferences.getInt("user_id", -1)
-            val userEmail = sharedPreferences.getString("user_email", "")
-            val userPoints = sharedPreferences.getString("user_points", "")
-            val userCountry = sharedPreferences.getString("user_country", null)
-            if (userId != -1 && !userEmail.isNullOrEmpty() && !userPoints.isNullOrEmpty()) {
-                Log.d("LoginActivity", userCountry.toString())
-                navigateToMainActivity(userId, userEmail, userPoints)
-                return
-            }
-        }
+        initializeViews()
+        setupGoogleSignIn()
+        setupListeners()
 
+        authService = AuthService(this)
+        viewModel = ViewModelProvider(this)[UserViewModel::class.java]
+        encryptedSharedPreferences = EncryptedPreferencesUtil.getEncryptedSharedPreferences(this)
+
+        checkAndHandleGoogleSignIn()
+    }
+
+    private fun initializeViews() {
         googleBtn = findViewById(R.id.google_btn)
         emailInput = findViewById(R.id.email_input)
         passwordInput = findViewById(R.id.password_input)
         emailLoginBtn = findViewById(R.id.email_login_btn)
         registerText = findViewById(R.id.register_btn)
+    }
 
+    private fun setupGoogleSignIn() {
         gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
             .requestIdToken(getString(R.string.WEB_CLIENT_ID))
             .requestEmail()
             .build()
-
         gsc = GoogleSignIn.getClient(this, gso)
+    }
 
-        val acct: GoogleSignInAccount? = GoogleSignIn.getLastSignedInAccount(this)
-        if (acct != null) {
-            val idToken = acct.idToken
-            sendTokenToBackend(idToken)
-        }
-
-        googleBtn.setOnClickListener {
-            signIn()
-        }
-
-        registerText.setOnClickListener {
-            startActivity(Intent(this, RegisterActivity::class.java))
-        }
-
+    private fun setupListeners() {
+        googleBtn.setOnClickListener { signIn() }
+        registerText.setOnClickListener { startActivity(Intent(this, RegisterActivity::class.java)) }
         emailLoginBtn.setOnClickListener {
             val email = emailInput.text.toString()
             val password = passwordInput.text.toString()
             if (email.isNotEmpty() && password.isNotEmpty()) {
                 loginWithEmail(email, password)
             } else {
-                Toast.makeText(this, "Please enter email and password", Toast.LENGTH_SHORT).show()
+                showToast("Please enter email and password")
             }
+        }
+    }
+
+    private fun checkAndHandleGoogleSignIn() {
+        val acct = GoogleSignIn.getLastSignedInAccount(this)
+        if (acct != null) {
+            val idToken = acct.idToken
+            sendTokenToBackend(idToken)
         }
     }
 
@@ -99,39 +95,15 @@ class LoginActivity : AppCompatActivity() {
         signInLauncher.launch(signInIntent)
     }
 
-
-    @Deprecated("This declaration overrides deprecated member but not marked as deprecated itself. See https://youtrack.jetbrains.com/issue/KT-47902 for details")
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
-        if (requestCode == 1000) {
-            val task = GoogleSignIn.getSignedInAccountFromIntent(data)
-            try {
-                val account = task.getResult(ApiException::class.java)
-                val idToken = account?.idToken
-                sendTokenToBackend(idToken)
-            } catch (e: ApiException) {
-                Toast.makeText(applicationContext, "Something went wrong", Toast.LENGTH_SHORT).show()
-            }
-        }
-    }
-
     private fun sendTokenToBackend(idToken: String?) {
         if (idToken != null) {
             authService.sendTokenToBackend(idToken) { response, error ->
                 if (error != null) {
-                    error.printStackTrace()
-                    runOnUiThread {
-                        Toast.makeText(applicationContext, "Authentication failed", Toast.LENGTH_SHORT).show()
-                    }
+                    showToast("Authentication failed")
                 } else if (response != null && response.isSuccessful) {
-                    val responseBody = response.body?.string()
-                    runOnUiThread {
-                        handleSuccessResponse(responseBody)
-                    }
+                    handleSuccessResponse(response.body?.string())
                 } else {
-                    runOnUiThread {
-                        Toast.makeText(applicationContext, "Authentication failed", Toast.LENGTH_SHORT).show()
-                    }
+                    showToast("Authentication failed")
                 }
             }
         }
@@ -140,115 +112,114 @@ class LoginActivity : AppCompatActivity() {
     private fun loginWithEmail(email: String, password: String) {
         authService.loginWithEmail(email, password) { response, error ->
             if (error != null) {
-                error.printStackTrace()
-                runOnUiThread {
-                    Toast.makeText(applicationContext, "Login failed", Toast.LENGTH_SHORT).show()
-                }
-            } else if (response != null && response.isSuccessful) {
-                val responseBody = response.body?.string()
-                runOnUiThread {
-                    handleSuccessResponse(responseBody)
-                }
-            } else {
                 runOnUiThread {
                     handleErrorResponse(response)
                 }
+            } else if (response != null && response.isSuccessful) {
+                handleSuccessResponse(response.body?.string())
+            } else {
+                handleErrorResponse(response)
             }
         }
     }
 
     private fun handleSuccessResponse(responseBody: String?) {
-        if (responseBody != null) {
+        responseBody?.let {
             try {
+
+
                 val jsonObject = JSONObject(responseBody)
+                Log.d("LoginActivity", jsonObject.toString())
                 val userJson = jsonObject.getJSONObject("user")
                 val jwtToken = jsonObject.getString("jwtToken")
                 val userId = userJson.getInt("user_id")
                 val userEmail = userJson.getString("email")
                 val userPoints = userJson.getString("points")
-                val userCountry = if (!userJson.isNull("country")) {
-                    userJson.getString("country")
-                } else {
-                    null
-                }
+                val userCountry = userJson.optString("country", null)
 
-
-                // Store user data in SharedPreferences
-                val sharedPreferences = getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
-                with(sharedPreferences.edit()) {
-                    putInt("user_id", userId)
-                    putString("jwtToken", jwtToken)
-                    putString("user_email", userEmail)
-                    putString("user_points", userPoints)
-                    putString("user_country", userCountry)
-                    apply()
-                }
-
-
+                saveUserData(userId, jwtToken, userEmail, userPoints, userCountry)
                 navigateToMainActivity(userId, userEmail, userPoints)
             } catch (e: Exception) {
+                runOnUiThread {
+                    showToast("Failed to parse user info")
+                }
                 e.printStackTrace()
-                displayErrorMessage("Failed to parse user info")
             }
         }
     }
 
     private fun handleErrorResponse(response: Response?) {
-        val responseBody = response?.body?.string()
+        response?.let {
+            val responseBody = response.body?.string()
+            responseBody?.let { body ->
+                try {
+                    val jsonObject = JSONObject(body)
+                    val errorArray = jsonObject.optJSONArray("message")
 
-        responseBody?.let { body ->
-            val jsonObject = JSONObject(body)
-            val errorArray = jsonObject.getJSONArray("message")
+                    val errorMessage = if (errorArray != null) {
+                        val errorMessages = mutableListOf<String>()
+                        for (i in 0 until errorArray.length()) {
+                            errorMessages.add(errorArray.getString(i))
+                        }
+                        errorMessages.joinToString(", ")
+                    } else {
+                        "Unknown error"
+                    }
 
-            val errorMessage = StringBuilder()
-            for (i in 0 until errorArray.length()) {
-                errorMessage.append(errorArray.getString(i))
-                if (i < errorArray.length() - 1) {
-                    errorMessage.append(", ")
+                    runOnUiThread {
+                        showToast(errorMessage)
+                    }
+                } catch (e: Exception) {
+                    runOnUiThread {
+                        showToast("Failed to parse error response")
+                    }
+                    e.printStackTrace()
                 }
+            } ?: runOnUiThread {
+                showToast("Response body is null")
             }
+        } ?: runOnUiThread {
+            showToast("Response is null")
+        }
+    }
 
-            when (response.code) {
-                400 -> {
-                    displayErrorMessage(errorMessage.toString())
-                }
-                401 -> {
-                    displayErrorMessage(errorMessage.toString())
-                }
-                else -> {
-                    displayErrorMessage("Authentication failed: ${response.message}")
-                }
-            }
-        } ?: run {
-            // Handle case where responseBody is null
-            displayErrorMessage("Response body is null")
+
+    private fun saveUserData(userId: Int, jwtToken: String, userEmail: String, userPoints: String, userCountry: String?) {
+        with(encryptedSharedPreferences.edit()) {
+            putInt("user_id", userId)
+            putString("jwtToken", jwtToken)
+            putString("user_email", userEmail)
+            putString("user_points", userPoints)
+            putString("user_country", userCountry)
+            apply()
         }
     }
 
     private val signInLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
         if (result.resultCode == Activity.RESULT_OK) {
             val data: Intent? = result.data
-            // Handle the result here
             val task = GoogleSignIn.getSignedInAccountFromIntent(data)
             try {
                 val account = task.getResult(ApiException::class.java)
                 val idToken = account?.idToken
                 sendTokenToBackend(idToken)
             } catch (e: ApiException) {
-                Toast.makeText(applicationContext, "Something went wrong", Toast.LENGTH_SHORT).show()
+                showToast("Something went wrong")
+                e.printStackTrace()
             }
         }
     }
 
-    private fun displayErrorMessage(message: String) {
-        Toast.makeText(applicationContext, message, Toast.LENGTH_SHORT).show()
+    private fun showToast(message: String) {
+        Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
     }
 
     private fun navigateToMainActivity(userId: Int, userEmail: String, userPoints: String) {
-        val intent = Intent(this@LoginActivity, MainActivity::class.java)
-        intent.putExtra("user_id", userId)
-        intent.putExtra("user_email", userEmail)
-        intent.putExtra("user_points", userPoints)
+        val intent = Intent(this, MainActivity::class.java).apply {
+            putExtra("user_id", userId)
+            putExtra("user_email", userEmail)
+            putExtra("user_points", userPoints)
+        }
         startActivity(intent)
         finish()
     }

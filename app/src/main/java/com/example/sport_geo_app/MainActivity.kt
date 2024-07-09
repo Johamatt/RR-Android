@@ -6,18 +6,18 @@ import androidx.fragment.app.Fragment
 import com.example.sport_geo_app.ui.fragment.HomeFragment
 import com.example.sport_geo_app.ui.fragment.MapFragment
 import com.google.android.material.bottomnavigation.BottomNavigationView
-
-
-import android.content.Context
 import android.content.Intent
+import android.content.SharedPreferences
 import androidx.lifecycle.ViewModelProvider
 import com.example.sport_geo_app.ui.activity.SettingsActivity
 import com.example.sport_geo_app.ui.viewmodel.UserViewModel
+import com.example.sport_geo_app.utils.EncryptedPreferencesUtil
 
 
 class MainActivity : AppCompatActivity() {
     private lateinit var viewModel: UserViewModel
     private lateinit var bottomNavigationView: BottomNavigationView
+    private lateinit var encryptedSharedPreferences: SharedPreferences
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -25,6 +25,7 @@ class MainActivity : AppCompatActivity() {
 
         viewModel = ViewModelProvider(this)[UserViewModel::class.java]
         bottomNavigationView = findViewById(R.id.bottom_navigation)
+        encryptedSharedPreferences = EncryptedPreferencesUtil.getEncryptedSharedPreferences(this)
 
         bottomNavigationView.setOnItemSelectedListener { menuItem ->
             when (menuItem.itemId) {
@@ -41,13 +42,11 @@ class MainActivity : AppCompatActivity() {
         }
 
         if (savedInstanceState == null) {
-            // Check if country is defined in SharedPreferences
-            val sharedPreferences = getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
-            val userCountry = sharedPreferences.getString("user_country", null)
+            // Check if country is defined in EncryptedSharedPreferences
+            val userCountry = encryptedSharedPreferences.getString("user_country", null)
             if (userCountry.isNullOrEmpty()) {
                 navigateToCountrySelection()
             } else {
-                // User country is defined, so select the home fragment
                 bottomNavigationView.selectedItemId = R.id.bottom_home
             }
         }
