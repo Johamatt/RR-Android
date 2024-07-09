@@ -7,6 +7,8 @@ import com.example.sport_geo_app.R
 import okhttp3.*
 import java.io.IOException
 
+
+// TODO change to Retrofit
 class AuthService(private val context: Context) {
 
     private val client = OkHttpClient()

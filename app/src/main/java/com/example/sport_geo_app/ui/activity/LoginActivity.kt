@@ -148,6 +148,7 @@ class LoginActivity : AppCompatActivity() {
         }
     }
 
+    // TODO ? just return err msg from back
     private fun handleErrorResponse(response: Response?) {
         response?.let {
             val responseBody = response.body?.string()

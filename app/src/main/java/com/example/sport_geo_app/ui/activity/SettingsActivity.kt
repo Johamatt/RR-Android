@@ -54,6 +54,8 @@ class SettingsActivity : AppCompatActivity() {
         }
     }
 
+
+    // TODO move to service
     private fun save(country: String) {
         val userId = encryptedSharedPreferences.getInt("user_id", -1)
         val token = encryptedSharedPreferences.getString("jwtToken", null)

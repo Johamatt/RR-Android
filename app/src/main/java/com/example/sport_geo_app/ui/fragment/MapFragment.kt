@@ -2,6 +2,7 @@ package com.example.sport_geo_app.ui.fragment
 
 import android.content.SharedPreferences
 import android.graphics.Color
+import android.os.AsyncTask
 import android.os.Bundle
 import android.util.Log
 import android.view.Gravity
@@ -49,7 +50,14 @@ import com.example.sport_geo_app.ui.viewmodel.UserViewModel
 import com.example.sport_geo_app.utils.EncryptedPreferencesUtil
 import com.google.gson.Gson
 import com.mapbox.geojson.Feature
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import okhttp3.Response
 import org.json.JSONObject
+import java.io.IOException
 
 class MapFragment : Fragment() {
 
@@ -72,7 +80,6 @@ class MapFragment : Fragment() {
         }
     }
 
-
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         locationPermissionHelper = LocationPermissionHelper(WeakReference(requireActivity()))
@@ -81,7 +88,7 @@ class MapFragment : Fragment() {
         }
     }
 
-
+    // TODO deprecated
     @Deprecated("This declaration overrides deprecated member but not marked as deprecated itself. Please add @Deprecated annotation or suppress. See https://youtrack.jetbrains.com/issue/KT-47902 for details")
     override fun onRequestPermissionsResult(
         requestCode: Int,
@@ -123,6 +130,7 @@ class MapFragment : Fragment() {
     }
 
 
+    // TODO fix mess
     private fun handleMapClick(point: Point) {
         if (!::viewAnnotationManager.isInitialized) {
             return
@@ -188,21 +196,42 @@ class MapFragment : Fragment() {
     }
 
 
+    // TODO replace globalscope
     private fun addClusteredGeoJsonSource(style: Style) {
-
         val userCountry = encryptedSharedPreferences.getString("user_country", null)
-        Log.d("MapFragment", userCountry.toString())
+        val token = encryptedSharedPreferences.getString("jwtToken", null)
 
-        // TODO add bearer token
-        style.addSource(
-            geoJsonSource(GEOJSON_SOURCE_ID) {
-                data("${getString(R.string.EC2_PUBLIC_IP)}/places/country/$userCountry")
-                cluster(true)
-                maxzoom(14)
-                clusterRadius(50)
+        GlobalScope.launch(Dispatchers.IO) {
+            val client = OkHttpClient()
+            val request = Request.Builder()
+                .url("${getString(R.string.EC2_PUBLIC_IP)}/places/country/$userCountry")
+                .header("Authorization", "Bearer $token")
+                .build()
 
+            try {
+                val response = client.newCall(request).execute()
+                if (response.isSuccessful) {
+                    val geoJsonString = response.body?.string()
+
+                    requireActivity().runOnUiThread {
+                        style.addSource(
+                            geoJsonSource(GEOJSON_SOURCE_ID) {
+                                if (!geoJsonString.isNullOrEmpty()) {
+                                    data(geoJsonString)
+                                }
+                                cluster(true)
+                                maxzoom(14)
+                                clusterRadius(50)
+                            }
+                        )
+                    }
+                } else {
+                    Log.e("MapFragment", "Unsuccessful response: ${response.code}")
+                }
+            } catch (e: IOException) {
+                Log.e("MapFragment", "Network error: ${e.message}")
             }
-        )
+        }
 
         style.addLayer(
             symbolLayer("unclustered-points", GEOJSON_SOURCE_ID) {
@@ -313,6 +342,7 @@ class MapFragment : Fragment() {
         val textView: TextView = layout.findViewById(R.id.custom_toast_message)
         textView.text = message
 
+        // TODO 'setter for view: View?' is deprecated.
         with(Toast(requireContext())) {
             duration = Toast.LENGTH_LONG
             view = layout
@@ -320,7 +350,6 @@ class MapFragment : Fragment() {
             show()
         }
     }
-
 
     companion object {
         private const val GEOJSON_SOURCE_ID = "places"
@@ -330,6 +359,4 @@ class MapFragment : Fragment() {
     private val resourcesAndIds = arrayOf(
         Pair(R.drawable.ic_pin, PIN_ID),
     )
-
-
 }
