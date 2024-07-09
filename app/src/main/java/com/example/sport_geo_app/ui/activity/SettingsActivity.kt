@@ -53,8 +53,9 @@ class SettingsActivity : AppCompatActivity() {
         val sharedPreferences = getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
         val userId = sharedPreferences.getInt("user_id", -1)
 
-        if (userId == -1) {
-            Toast.makeText(this, "User ID not found", Toast.LENGTH_SHORT).show()
+        val token = sharedPreferences.getString("access_token", null)
+        if (userId == -1 || token == null) {
+            Toast.makeText(this, "User ID or JWT Token not found", Toast.LENGTH_SHORT).show()
             return
         }
         val url = "${getString(R.string.EC2_PUBLIC_IP)}/users/$userId/country"
@@ -67,6 +68,7 @@ class SettingsActivity : AppCompatActivity() {
         val request = Request.Builder()
             .url(url)
             .patch(requestBody)
+            .addHeader("Authorization", "Bearer $token")
             .build()
 
         client.newCall(request).enqueue(object : Callback {

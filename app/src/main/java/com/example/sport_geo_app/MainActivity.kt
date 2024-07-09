@@ -44,7 +44,6 @@ class MainActivity : AppCompatActivity() {
             // Check if country is defined in SharedPreferences
             val sharedPreferences = getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
             val userCountry = sharedPreferences.getString("user_country", null)
-
             if (userCountry.isNullOrEmpty()) {
                 navigateToCountrySelection()
             } else {

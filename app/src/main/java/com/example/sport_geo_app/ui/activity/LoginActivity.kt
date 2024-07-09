@@ -44,7 +44,7 @@ class LoginActivity : AppCompatActivity() {
         viewModel = ViewModelProvider(this, ViewModelProvider.AndroidViewModelFactory(application))[UserViewModel::class.java]
 
         val sharedPreferences = getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
-        if (sharedPreferences.contains("user_id")) {
+        if (sharedPreferences.contains("jwtToken")) {
             val userId = sharedPreferences.getInt("user_id", -1)
             val userEmail = sharedPreferences.getString("user_email", "")
             val userPoints = sharedPreferences.getString("user_points", "")
@@ -162,7 +162,7 @@ class LoginActivity : AppCompatActivity() {
             try {
                 val jsonObject = JSONObject(responseBody)
                 val userJson = jsonObject.getJSONObject("user")
-
+                val jwtToken = jsonObject.getString("jwtToken")
                 val userId = userJson.getInt("user_id")
                 val userEmail = userJson.getString("email")
                 val userPoints = userJson.getString("points")
@@ -177,6 +177,7 @@ class LoginActivity : AppCompatActivity() {
                 val sharedPreferences = getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
                 with(sharedPreferences.edit()) {
                     putInt("user_id", userId)
+                    putString("jwtToken", jwtToken)
                     putString("user_email", userEmail)
                     putString("user_points", userPoints)
                     putString("user_country", userCountry)

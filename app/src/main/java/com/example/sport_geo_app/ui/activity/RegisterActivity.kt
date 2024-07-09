@@ -3,6 +3,7 @@ package com.example.sport_geo_app.ui.activity
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.widget.Button
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
@@ -80,14 +81,14 @@ class RegisterActivity : AppCompatActivity() {
             try {
                 val jsonObject = JSONObject(responseBody)
                 val userJson = jsonObject.getJSONObject("user")
-
+                val jwtToken = jsonObject.getString("access_token")
                 val userId = userJson.getInt("user_id")
                 val userEmail = userJson.getString("email")
                 val userPoints = userJson.getString("points")
-
                 val sharedPreferences = getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
                 with(sharedPreferences.edit()) {
                     putInt("user_id", userId)
+                   putString("access_token", jwtToken)
                     putString("user_email", userEmail)
                     putString("user_points", userPoints)
                     putString("user_country", null)
