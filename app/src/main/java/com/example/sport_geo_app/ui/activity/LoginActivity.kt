@@ -98,30 +98,34 @@ class LoginActivity : AppCompatActivity() {
     private fun sendTokenToBackend(idToken: String?) {
         if (idToken != null) {
             authService.sendTokenToBackend(idToken) { response, error ->
-                if (error != null) {
-                    showToast("Authentication failed")
-                } else if (response != null && response.isSuccessful) {
-                    handleSuccessResponse(response.body?.string())
-                } else {
-                    showToast("Authentication failed")
+                runOnUiThread {
+                    if (error != null) {
+                        showToast("Authentication failed")
+                    } else if (response != null && response.isSuccessful) {
+                        handleSuccessResponse(response.body?.string())
+                    } else {
+                        showToast("Authentication failed")
+                    }
                 }
             }
         }
     }
 
+
     private fun loginWithEmail(email: String, password: String) {
         authService.loginWithEmail(email, password) { response, error ->
-            if (error != null) {
-                runOnUiThread {
+            runOnUiThread {
+                if (error != null) {
+                    handleErrorResponse(response)
+                } else if (response != null && response.isSuccessful) {
+                    handleSuccessResponse(response.body?.string())
+                } else {
                     handleErrorResponse(response)
                 }
-            } else if (response != null && response.isSuccessful) {
-                handleSuccessResponse(response.body?.string())
-            } else {
-                handleErrorResponse(response)
             }
         }
     }
+
 
     private fun handleSuccessResponse(responseBody: String?) {
         responseBody?.let {
