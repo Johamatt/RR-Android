@@ -1,100 +1,93 @@
 package com.example.sport_geo_app.data.network
 
+
 import android.content.Context
 import android.util.Log
-import com.android.volley.Request
-import com.android.volley.VolleyError
-import com.android.volley.toolbox.JsonObjectRequest
-import com.android.volley.toolbox.Volley
 import com.example.sport_geo_app.R
+import com.example.sport_geo_app.data.network.utils.AuthInterceptor
 import com.example.sport_geo_app.utils.EncryptedPreferencesUtil
-import org.json.JSONException
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.OkHttpClient
+import okhttp3.RequestBody.Companion.toRequestBody
+import okhttp3.ResponseBody
 import org.json.JSONObject
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
+import retrofit2.Retrofit
+import retrofit2.converter.gson.GsonConverterFactory
 
-
-// TODO change to Retrofit
 class NetworkService(private val context: Context) {
     private val EC2PublicIP = context.getString(R.string.EC2_PUBLIC_IP)
     private val encryptedSharedPreferences = EncryptedPreferencesUtil.getEncryptedSharedPreferences(context)
 
+    private val retrofit: Retrofit
+
+    init {
+        val token = encryptedSharedPreferences.getString("jwtToken", null)
+        val okHttpClient = OkHttpClient.Builder()
+            .addInterceptor(AuthInterceptor(token))
+            .build()
+
+        retrofit = Retrofit.Builder()
+            .baseUrl(EC2PublicIP)
+            .client(okHttpClient)
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
+    }
+
+    private val apiService: NetworkInterface = retrofit.create(NetworkInterface::class.java)
+
+
+
     fun checkProximity(
         requestBody: JSONObject,
-        onSuccess: (Boolean) -> Unit,
-        onError: (String) -> Unit
-    ) {
-        val token = encryptedSharedPreferences.getString("jwtToken", null)
+        callback: (response: ResponseBody?, error: Throwable?) -> Unit) {
 
-        val request = object : JsonObjectRequest(
-            Method.POST,
-            "$EC2PublicIP/places/check-proximity",
-            requestBody,
-            { response ->
-                val isNearby = response.getBoolean("isNearby")
-                onSuccess(isNearby)
-            },
-            { error ->
-                handleError(error, onError)
-            }
-        ) {
-            override fun getHeaders(): MutableMap<String, String> {
-                val headers = HashMap<String, String>()
-                token?.let {
-                    headers["Authorization"] = "Bearer $it"
+        val body = requestBody.toString().toRequestBody("application/json; charset=utf-8".toMediaTypeOrNull())
+        val call = apiService.checkProximity(body)
+
+        call.enqueue(object : Callback<ResponseBody> {
+            override fun onResponse(call: Call<ResponseBody>, response: Response<ResponseBody>) {
+                if (response.isSuccessful) {
+                    callback(response.body(), null)
+                } else {
+                    val errorBody = response.errorBody()?.string()
+                    val errorMessage = response.message()
+                    callback(null, Throwable(errorBody ?: errorMessage ?: "Unknown error occurred"))
                 }
-                headers["Content-Type"] = "application/json"
-                return headers
             }
-        }
-        addToRequestQueue(request)
+
+            override fun onFailure(call: Call<ResponseBody>, t: Throwable) {
+                callback(null, t)
+            }
+        })
     }
 
     fun claimReward(
         requestBody: JSONObject,
-        onSuccess: () -> Unit,
-        onError: (String) -> Unit
-    ) {
-        val token = encryptedSharedPreferences.getString("jwtToken", null)
-        val request = object : JsonObjectRequest(
-            Method.POST,
-            "$EC2PublicIP/visits",
-            requestBody,
-            { response ->
-                onSuccess()
-            },
-            { error ->
-                handleError(error, onError)
-            }
-        ) {
-            override fun getHeaders(): MutableMap<String, String> {
-                val headers = HashMap<String, String>()
-                token?.let {
-                    headers["Authorization"] = "Bearer $it"
+        callback: (response: ResponseBody?, error: Throwable?) -> Unit) {
+
+
+        val body = requestBody.toString().toRequestBody("application/json; charset=utf-8".toMediaTypeOrNull())
+        val call = apiService.claimReward(body)
+
+        call.enqueue(object : Callback<ResponseBody> {
+            override fun onResponse(call: Call<ResponseBody>, response: Response<ResponseBody>) {
+
+                Log.d("MapFragment", response.toString())
+                if (response.isSuccessful) {
+                    callback(response.body(), null)
+                } else {
+                    val errorBody = response.errorBody()?.string()
+                    val errorMessage = response.message()
+                    callback(null, Throwable(errorBody ?: errorMessage ?: "Unknown error occurred"))
                 }
-                headers["Content-Type"] = "application/json"
-                return headers
             }
-        }
-        addToRequestQueue(request)
-    }
 
-    private fun addToRequestQueue(request: Request<JSONObject>) {
-        Volley.newRequestQueue(context).add(request)
-    }
-
-    private fun handleError(error: VolleyError, onError: (String) -> Unit) {
-        if (error.networkResponse != null) {
-            val errorResponse = String(error.networkResponse.data)
-            Log.e("Volley Error", errorResponse)
-            try {
-                val jsonObject = JSONObject(errorResponse)
-                val errorMessage = jsonObject.getJSONArray("message").getString(0)
-                onError(errorMessage)
-            } catch (e: JSONException) {
-                onError("Failed to parse error message")
+            override fun onFailure(call: Call<ResponseBody>, t: Throwable) {
+                callback(null, t)
             }
-        } else {
-            Log.e("Volley Error", error.message ?: "Unknown error")
-            onError(error.message ?: "Unknown error")
-        }
+        })
     }
 }

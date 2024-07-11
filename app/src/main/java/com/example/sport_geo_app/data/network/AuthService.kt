@@ -1,6 +1,6 @@
 import android.content.Context
 import com.example.sport_geo_app.R
-import com.example.sport_geo_app.data.network.API.AuthInterface
+import com.example.sport_geo_app.data.network.AuthInterface
 import okhttp3.ResponseBody
 import retrofit2.Call
 import retrofit2.Callback
@@ -33,7 +33,7 @@ class AuthService(private val context: Context) {
                     callback(response.body(), null)
                 } else {
                     val errorBody = response.errorBody()?.string()
-                    val errorMessage = response.message() // This might be the HTTP status message
+                    val errorMessage = response.message()
                     callback(null, Throwable(errorBody ?: errorMessage ?: "Unknown error occurred"))
                 }
             }
@@ -71,7 +71,7 @@ class AuthService(private val context: Context) {
                     callback(response.body(), null)
                 } else {
                     val errorBody = response.errorBody()?.string()
-                    val errorMessage = response.message() // This might be the HTTP status message
+                    val errorMessage = response.message()
                     callback(null, Throwable(errorBody ?: errorMessage ?: "Unknown error occurred"))
                 }
             }

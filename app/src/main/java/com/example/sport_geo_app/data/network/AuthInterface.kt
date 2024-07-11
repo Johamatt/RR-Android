@@ -1,4 +1,4 @@
-package com.example.sport_geo_app.data.network.API
+package com.example.sport_geo_app.data.network
 
 import okhttp3.ResponseBody
 import retrofit2.Call

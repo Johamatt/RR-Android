@@ -56,6 +56,7 @@ import kotlinx.coroutines.launch
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.Response
+import org.json.JSONException
 import org.json.JSONObject
 import java.io.IOException
 
@@ -304,14 +305,23 @@ class MapFragment : Fragment() {
             put("markerLongitude", coordinates[0])
         }
 
-        networkService.checkProximity(requestBody,
-            onSuccess = { isNearby ->
-                if (isNearby) claimReward(values) else showCustomToast("You are not nearby the marker")
-            },
-            onError = { error ->
-                showCustomToast("Error: $error")
+        networkService.checkProximity(requestBody) { response, error ->
+            if (error != null) {
+                showCustomToast("Error: ${error.message}")
+            } else {
+                val responseBody = response?.string()
+                if (responseBody != null) {
+                    val isNearby = JSONObject(responseBody).getBoolean("isNearby")
+                    if (isNearby) {
+                        claimReward(values)
+                    } else {
+                        showCustomToast("You are not nearby the marker")
+                    }
+                } else {
+                    showCustomToast("Unknown error occurred")
+                }
             }
-        )
+        }
     }
 
     private fun claimReward(values: Feature) {
@@ -324,10 +334,24 @@ class MapFragment : Fragment() {
             put("placeId", properties.place_id)
         }
 
-        networkService.claimReward(requestBody,
-            onSuccess = { showCustomToast("Reward claimed successfully!") },
-            onError = { error -> showCustomToast(error) }
+        networkService.claimReward(
+            requestBody,
+            callback = { response, error ->
+                if (error != null) {
+                    try {
+                        val errorJson = JSONObject(error.message)
+                        val errorMessage = errorJson.getString("message")
+                        showCustomToast(errorMessage)
+                    } catch (e: JSONException) {
+                        showCustomToast("Error parsing err response")
+                    }
+                } else {
+                    showCustomToast("Reward claimed successfully!")
+                }
+            }
         )
+
+
 
     }
 
