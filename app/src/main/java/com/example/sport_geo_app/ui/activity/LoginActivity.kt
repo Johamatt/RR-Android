@@ -4,7 +4,6 @@ import android.app.Activity
 import android.content.Intent
 import android.content.SharedPreferences
 import android.os.Bundle
-import android.util.Log
 import android.widget.Button
 import android.widget.EditText
 import android.widget.ImageView
@@ -12,16 +11,13 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
-import androidx.lifecycle.ViewModelProvider
 import com.example.sport_geo_app.MainActivity
 import com.example.sport_geo_app.R
-import com.example.sport_geo_app.ui.viewmodel.UserViewModel
 import com.example.sport_geo_app.utils.EncryptedPreferencesUtil
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInClient
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.common.api.ApiException
-import okhttp3.*
 import org.json.JSONException
 import org.json.JSONObject
 
@@ -35,7 +31,6 @@ class LoginActivity : AppCompatActivity() {
     private lateinit var emailLoginBtn: Button
     private lateinit var registerText: TextView
     private lateinit var authService: AuthService
-    private lateinit var viewModel: UserViewModel
     private lateinit var encryptedSharedPreferences: SharedPreferences
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -47,10 +42,16 @@ class LoginActivity : AppCompatActivity() {
         setupListeners()
 
         authService = AuthService(this)
-        viewModel = ViewModelProvider(this)[UserViewModel::class.java]
         encryptedSharedPreferences = EncryptedPreferencesUtil.getEncryptedSharedPreferences(this)
 
         checkAndHandleGoogleSignIn()
+
+        if (isLoggedIn()) {
+            navigateToMainActivity()
+        }
+    }
+    private fun isLoggedIn(): Boolean { // TODO change better verification
+        return encryptedSharedPreferences.contains("user_id")
     }
 
     private fun initializeViews() {
@@ -99,11 +100,9 @@ class LoginActivity : AppCompatActivity() {
     private fun loginWithGoogle(idToken: String?) {
         if (idToken != null) {
             authService.loginWithGoogle(idToken) { response, error ->
-                Log.d("LoginActivity", response.toString())
-                Log.d("LoginActivity", error.toString())
                 runOnUiThread {
                     if (error != null) {
-                        displayErrorMessage("Authentication failed")
+                        handleErrorResponse(error)
                     } else if (response != null) {
                         handleSuccessResponse(response.string())
                     } else {
@@ -135,7 +134,6 @@ class LoginActivity : AppCompatActivity() {
         responseBody?.let {
             try {
                 val jsonObject = JSONObject(responseBody)
-                Log.d("LoginActivity", jsonObject.toString())
                 val userJson = jsonObject.getJSONObject("user")
                 val jwtToken = jsonObject.getString("jwtToken")
                 val userId = userJson.getInt("user_id")
@@ -143,7 +141,7 @@ class LoginActivity : AppCompatActivity() {
                 val userPoints = userJson.getString("points")
                 val userCountry = userJson.optString("country", null)
                 saveUserData(userId, jwtToken, userEmail, userPoints, userCountry)
-                navigateToMainActivity(userId, userEmail, userPoints)
+                navigateToMainActivity()
             } catch (e: Exception) {
                 runOnUiThread {
                     displayErrorMessage("Failed to parse user info")
@@ -153,32 +151,19 @@ class LoginActivity : AppCompatActivity() {
         }
     }
     private fun handleErrorResponse(error: Throwable?) {
-
-        error?.let { throwable ->
-            val errorMessage = throwable.message
-            Log.d("LoginActivity", errorMessage.toString())
-            Log.d("LoginActivity", error.toString())
-            if (!errorMessage.isNullOrEmpty()) {
-                try {
-                    val jsonObject = JSONObject(errorMessage)
-                    val message = jsonObject.getString("message")
-
-                    runOnUiThread {
-                        displayErrorMessage(message)
-                    }
-                } catch (e: JSONException) {
-                    e.printStackTrace()
-                    runOnUiThread {
-                        displayErrorMessage("Failed to parse error response")
-                    }
-                }
-            } else {
-                runOnUiThread {
-                    displayErrorMessage("Unknown error occurred: ${throwable.javaClass.simpleName}")
-                }
+        val errorMessage = error?.message
+        val messageToShow = errorMessage?.let { message ->
+            try {
+                val jsonObject = JSONObject(message)
+                jsonObject.getString("message")
+            } catch (e: JSONException) {
+                e.printStackTrace()
+                "Failed to parse error response"
             }
-        } ?: runOnUiThread {
-            displayErrorMessage("Response is null")
+        } ?: "Unknown error occurred: ${error?.javaClass?.simpleName ?: "Unknown"}"
+
+        runOnUiThread {
+            displayErrorMessage(messageToShow)
         }
     }
 
@@ -186,10 +171,10 @@ class LoginActivity : AppCompatActivity() {
     private fun saveUserData(userId: Int, jwtToken: String, userEmail: String, userPoints: String, userCountry: String?) {
         with(encryptedSharedPreferences.edit()) {
             putInt("user_id", userId)
-            putString("jwtToken", jwtToken)
             putString("user_email", userEmail)
             putString("user_points", userPoints)
             putString("user_country", userCountry)
+            putString("jwtToken", jwtToken)
             apply()
         }
     }
@@ -213,12 +198,8 @@ class LoginActivity : AppCompatActivity() {
         Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
     }
 
-    private fun navigateToMainActivity(userId: Int, userEmail: String, userPoints: String) {
-        val intent = Intent(this, MainActivity::class.java).apply {
-            putExtra("user_id", userId)
-            putExtra("user_email", userEmail)
-            putExtra("user_points", userPoints)
-        }
+    private fun navigateToMainActivity() {
+        val intent = Intent(this, MainActivity::class.java)
         startActivity(intent)
         finish()
     }

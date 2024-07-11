@@ -4,7 +4,6 @@ import AuthService
 import android.content.Intent
 import android.content.SharedPreferences
 import android.os.Bundle
-import android.util.Log
 import android.widget.Button
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
@@ -14,9 +13,8 @@ import com.example.sport_geo_app.R
 import com.example.sport_geo_app.ui.viewmodel.UserViewModel
 import com.example.sport_geo_app.utils.EncryptedPreferencesUtil
 import com.google.android.material.textfield.TextInputEditText
-import org.json.JSONObject
 import org.json.JSONException
-import retrofit2.HttpException
+import org.json.JSONObject
 
 
 class RegisterActivity : AppCompatActivity() {
@@ -43,13 +41,11 @@ class RegisterActivity : AppCompatActivity() {
         }
         setupListeners()
     }
-
     private fun initializeViews() {
         emailInput = findViewById(R.id.register_email_input)
         passwordInput = findViewById(R.id.register_password_input)
         registerBtn = findViewById(R.id.register_btn)
     }
-
     private fun setupListeners() {
         registerBtn.setOnClickListener {
             val email = emailInput.text.toString()
@@ -57,36 +53,40 @@ class RegisterActivity : AppCompatActivity() {
             if (email.isNotEmpty() && password.isNotEmpty()) {
                 registerUser(email, password)
             } else {
-                showToast("Please enter email and password")
+                showMessage("Please enter email and password")
             }
         }
     }
-
-    private fun isLoggedIn(): Boolean {
+    private fun isLoggedIn(): Boolean { // TODO change better verification
         return encryptedSharedPreferences.contains("user_id")
     }
-
     private fun registerUser(email: String, password: String) {
         authService.registerUser(email, password) { response, error ->
             runOnUiThread {
                 if (error != null) {
-
                     handleErrorResponse(error)
                 } else if (response != null) {
                     handleSuccessResponse(response.string())
                 } else {
-
                     handleErrorResponse(null)
                 }
             }
         }
     }
-
+    private fun saveUserData(userId: Int, jwtToken: String, userEmail: String, userPoints: String) {
+        with(encryptedSharedPreferences.edit()) {
+            putInt("user_id", userId)
+            putString("user_email", userEmail)
+            putString("user_points", userPoints)
+            putString("user_country", null)
+            putString("jwtToken", jwtToken)
+            apply()
+        }
+    }
     private fun handleSuccessResponse(responseBody: String?) {
         responseBody?.let {
             try {
                 val jsonObject = JSONObject(responseBody)
-                Log.d("RegisterActivity", jsonObject.toString())
                 val userJson = jsonObject.getJSONObject("user")
                 val jwtToken = jsonObject.getString("jwtToken")
                 val userId = userJson.getInt("user_id")
@@ -100,68 +100,35 @@ class RegisterActivity : AppCompatActivity() {
             } catch (e: Exception) {
                 e.printStackTrace()
                 runOnUiThread {
-                    displayErrorMessage("Failed to parse user info")
+                    showMessage("Failed to parse user info")
                 }
             }
         }
     }
-
-
     private fun handleErrorResponse(error: Throwable?) {
-        error?.let { throwable ->
-            val errorMessage = throwable.message
-
-            if (errorMessage != null && errorMessage.isNotEmpty()) {
-                try {
-                    val jsonObject = JSONObject(errorMessage)
-                    val message = jsonObject.getString("message")
-
-                    runOnUiThread {
-                        displayErrorMessage(message)
-                    }
-                } catch (e: JSONException) {
-                    e.printStackTrace()
-                    runOnUiThread {
-                        displayErrorMessage("Failed to parse error response")
-                    }
-                }
-            } else {
-                runOnUiThread {
-                    displayErrorMessage("Unknown error occurred: ${throwable.javaClass.simpleName}")
-                }
+        val errorMessage = error?.message
+        val messageToShow = errorMessage?.let { message ->
+            try {
+                val jsonObject = JSONObject(message)
+                jsonObject.getString("message")
+            } catch (e: JSONException) {
+                e.printStackTrace()
+                "Failed to parse error response"
             }
-        } ?: runOnUiThread {
-            displayErrorMessage("Response is null")
+        } ?: "Unknown error occurred: ${error?.javaClass?.simpleName ?: "Unknown"}"
+
+        runOnUiThread {
+            showMessage(messageToShow)
         }
     }
-
-
-
-
-    private fun saveUserData(userId: Int, jwtToken: String, userEmail: String, userPoints: String) {
-        with(encryptedSharedPreferences.edit()) {
-            putInt("user_id", userId)
-            putString("jwtToken", jwtToken)
-            putString("user_email", userEmail)
-            putString("user_points", userPoints)
-            putString("user_country", null) // If needed
-            apply()
-        }
-    }
-
     private fun navigateToMainActivity() {
         val intent = Intent(this@RegisterActivity, MainActivity::class.java)
         startActivity(intent)
         finish()
     }
 
-    private fun showToast(message: String) {
-        runOnUiThread {
-            Toast.makeText(this@RegisterActivity, message, Toast.LENGTH_SHORT).show()
-        }
-    }
 
-    private fun displayErrorMessage(message: String) {
+    private fun showMessage(message: String) {
         runOnUiThread {
             Toast.makeText(this@RegisterActivity, message, Toast.LENGTH_SHORT).show()
         }

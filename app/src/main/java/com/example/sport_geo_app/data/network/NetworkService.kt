@@ -75,7 +75,28 @@ class NetworkService(private val context: Context) {
         call.enqueue(object : Callback<ResponseBody> {
             override fun onResponse(call: Call<ResponseBody>, response: Response<ResponseBody>) {
 
-                Log.d("MapFragment", response.toString())
+                if (response.isSuccessful) {
+                    callback(response.body(), null)
+                } else {
+                    val errorBody = response.errorBody()?.string()
+                    val errorMessage = response.message()
+                    callback(null, Throwable(errorBody ?: errorMessage ?: "Unknown error occurred"))
+                }
+            }
+
+            override fun onFailure(call: Call<ResponseBody>, t: Throwable) {
+                callback(null, t)
+            }
+        })
+    }
+
+    fun updateUserCountry(requestBody: JSONObject, callback: (response: ResponseBody?, error: Throwable?) -> Unit) {
+        val body = requestBody.toString().toRequestBody("application/json; charset=utf-8".toMediaTypeOrNull())
+        val call = apiService.updateUserCountry(body)
+
+        call.enqueue(object : Callback<ResponseBody> {
+            override fun onResponse(call: Call<ResponseBody>, response: Response<ResponseBody>) {
+
                 if (response.isSuccessful) {
                     callback(response.body(), null)
                 } else {

@@ -11,10 +11,12 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.example.sport_geo_app.MainActivity
 import com.example.sport_geo_app.R
+import com.example.sport_geo_app.data.network.NetworkService
 import com.example.sport_geo_app.utils.EncryptedPreferencesUtil
 import okhttp3.*
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.RequestBody.Companion.toRequestBody
+import org.json.JSONException
 import org.json.JSONObject
 import java.io.IOException
 
@@ -22,13 +24,21 @@ class SettingsActivity : AppCompatActivity() {
 
     private lateinit var countrySpinner: Spinner
     private lateinit var saveCountryBtn: Button
-    private val client = OkHttpClient()
     private lateinit var encryptedSharedPreferences: SharedPreferences
+    private lateinit var networkService: NetworkService
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        encryptedSharedPreferences = EncryptedPreferencesUtil.getEncryptedSharedPreferences(this)
+        networkService = NetworkService(this)
         setContentView(R.layout.activity_settings)
 
+        initializeViews()
+        initializeData()
+        setupListeners()
+    }
+
+    private fun initializeViews() {
         countrySpinner = findViewById(R.id.country_spinner)
         saveCountryBtn = findViewById(R.id.save_country_btn)
 
@@ -36,71 +46,75 @@ class SettingsActivity : AppCompatActivity() {
         val adapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, countries)
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
         countrySpinner.adapter = adapter
+    }
 
-        encryptedSharedPreferences = EncryptedPreferencesUtil.getEncryptedSharedPreferences(this)
-
-
+    private fun initializeData() {
         val userCountry = encryptedSharedPreferences.getString("user_country", null)
         userCountry?.let {
-            val position = countries.indexOf(it)
+            val position = (countrySpinner.adapter as? ArrayAdapter<String>)?.getPosition(it)
             if (position != -1) {
-                countrySpinner.setSelection(position)
+                countrySpinner.setSelection(position!!)
             }
         }
+    }
 
+    private fun setupListeners() {
         saveCountryBtn.setOnClickListener {
             val selectedCountry = countrySpinner.selectedItem.toString()
             save(selectedCountry)
         }
     }
 
-
-    // TODO move to service
     private fun save(country: String) {
         val userId = encryptedSharedPreferences.getInt("user_id", -1)
-        val token = encryptedSharedPreferences.getString("jwtToken", null)
-        Log.d("SettingsActivity", token.toString())
-        if (userId == -1 || token == null) {
-            Toast.makeText(this, "User ID or JWT Token not found", Toast.LENGTH_SHORT).show()
-            return
-        }
+        if (userId != -1) {
+            val requestBody = JSONObject().apply {
+                put("user_id", userId)
+                put("country", country)
+            }
 
-        val url = "${getString(R.string.EC2_PUBLIC_IP)}/users/$userId/country"
-
-        val json = JSONObject()
-        json.put("country", country)
-        val requestBody =
-            json.toString().toRequestBody("application/json; charset=utf-8".toMediaType())
-
-        val request = Request.Builder()
-            .url(url)
-            .patch(requestBody)
-            .addHeader("Authorization", "Bearer $token")
-            .build()
-
-        client.newCall(request).enqueue(object : Callback {
-            override fun onFailure(call: Call, e: IOException) {
+            networkService.updateUserCountry(requestBody) { response, error ->
                 runOnUiThread {
-                    Toast.makeText(applicationContext, "Failed to save", Toast.LENGTH_SHORT).show()
-                }
-            }
-
-            override fun onResponse(call: Call, response: Response) {
-                if (response.isSuccessful) {
-                    runOnUiThread {
-                        val editor = encryptedSharedPreferences.edit()
-                        editor.putString("user_country", country)
-                        editor.apply()
-
-                        navigateToMainActivity()
-                    }
-                } else {
-                    runOnUiThread {
-                        Toast.makeText(applicationContext, "Failed to save", Toast.LENGTH_SHORT).show()
+                    if (error != null) {
+                        handleErrorResponse(error)
+                    } else {
+                        if (response != null) {
+                            val jsonObject = JSONObject(response.string())
+                            val countryFromResponse = jsonObject.getString("country")
+                            val editor = encryptedSharedPreferences.edit()
+                            editor.putString("user_country", countryFromResponse)
+                            editor.apply()
+                            navigateToMainActivity()
+                        } else {
+                            showMessage("update failed")
+                        }
                     }
                 }
             }
-        })
+        } else {
+            showMessage("User ID not found")
+        }
+    }
+
+    private fun handleErrorResponse(error: Throwable?) {
+        val errorMessage = error?.message
+        val msg = errorMessage?.let { message ->
+            try {
+                val jsonObject = JSONObject(message)
+                jsonObject.getString("message")
+            } catch (e: JSONException) {
+                e.printStackTrace()
+                "Failed to parse error response"
+            }
+        } ?: "Unknown error occurred: ${error?.javaClass?.simpleName ?: "Unknown"}"
+
+        runOnUiThread {
+            showMessage(msg)
+        }
+    }
+
+    private fun showMessage(message: String) {
+        Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
     }
 
     private fun navigateToMainActivity() {
@@ -109,4 +123,5 @@ class SettingsActivity : AppCompatActivity() {
         finish()
     }
 }
+
 

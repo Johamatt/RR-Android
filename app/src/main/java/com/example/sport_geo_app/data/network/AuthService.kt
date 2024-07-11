@@ -52,7 +52,9 @@ class AuthService(private val context: Context) {
                 if (response.isSuccessful) {
                     callback(response.body(), null)
                 } else {
-                    callback(null, Throwable(response.message()))
+                    val errorBody = response.errorBody()?.string()
+                    val errorMessage = response.message()
+                    callback(null, Throwable(errorBody ?: errorMessage ?: "Unknown error occurred"))
                 }
             }
 
