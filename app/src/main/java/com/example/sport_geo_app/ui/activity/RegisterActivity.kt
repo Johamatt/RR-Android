@@ -1,5 +1,6 @@
 package com.example.sport_geo_app.ui.activity
 
+import AuthService
 import android.content.Intent
 import android.content.SharedPreferences
 import android.os.Bundle
@@ -10,12 +11,12 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProvider
 import com.example.sport_geo_app.MainActivity
 import com.example.sport_geo_app.R
-import com.example.sport_geo_app.data.network.AuthService
 import com.example.sport_geo_app.ui.viewmodel.UserViewModel
 import com.example.sport_geo_app.utils.EncryptedPreferencesUtil
 import com.google.android.material.textfield.TextInputEditText
 import org.json.JSONObject
-import okhttp3.Response
+import org.json.JSONException
+import retrofit2.HttpException
 
 
 class RegisterActivity : AppCompatActivity() {
@@ -67,12 +68,16 @@ class RegisterActivity : AppCompatActivity() {
 
     private fun registerUser(email: String, password: String) {
         authService.registerUser(email, password) { response, error ->
-            if (error != null) {
-                handleErrorResponse(response)
-            } else if (response != null && response.isSuccessful) {
-                handleSuccessResponse(response.body?.string())
-            } else {
-                handleErrorResponse(response)
+            runOnUiThread {
+                if (error != null) {
+
+                    handleErrorResponse(error)
+                } else if (response != null) {
+                    handleSuccessResponse(response.string())
+                } else {
+
+                    handleErrorResponse(null)
+                }
             }
         }
     }
@@ -101,36 +106,37 @@ class RegisterActivity : AppCompatActivity() {
         }
     }
 
-    private fun handleErrorResponse(response: Response?) {
-        response?.let {
-            val responseBody = response.body?.string()
-            responseBody?.let { body ->
+
+    private fun handleErrorResponse(error: Throwable?) {
+        error?.let { throwable ->
+            val errorMessage = throwable.message
+
+            if (errorMessage != null && errorMessage.isNotEmpty()) {
                 try {
-                    val jsonObject = JSONObject(body)
-                    val errorArray = jsonObject.getJSONArray("message")
-                    val errorMessage = StringBuilder()
-                    for (i in 0 until errorArray.length()) {
-                        errorMessage.append(errorArray.getString(i))
-                        if (i < errorArray.length() - 1) {
-                            errorMessage.append(", ")
-                        }
-                    }
+                    val jsonObject = JSONObject(errorMessage)
+                    val message = jsonObject.getString("message")
+
                     runOnUiThread {
-                        displayErrorMessage(errorMessage.toString())
+                        displayErrorMessage(message)
                     }
-                } catch (e: Exception) {
+                } catch (e: JSONException) {
                     e.printStackTrace()
                     runOnUiThread {
                         displayErrorMessage("Failed to parse error response")
                     }
                 }
-            } ?: runOnUiThread {
-                displayErrorMessage("Response body is null")
+            } else {
+                runOnUiThread {
+                    displayErrorMessage("Unknown error occurred: ${throwable.javaClass.simpleName}")
+                }
             }
         } ?: runOnUiThread {
             displayErrorMessage("Response is null")
         }
     }
+
+
+
 
     private fun saveUserData(userId: Int, jwtToken: String, userEmail: String, userPoints: String) {
         with(encryptedSharedPreferences.edit()) {

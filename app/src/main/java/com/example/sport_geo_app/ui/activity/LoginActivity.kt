@@ -1,4 +1,5 @@
 package com.example.sport_geo_app.ui.activity
+import AuthService
 import android.app.Activity
 import android.content.Intent
 import android.content.SharedPreferences
@@ -14,7 +15,6 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProvider
 import com.example.sport_geo_app.MainActivity
 import com.example.sport_geo_app.R
-import com.example.sport_geo_app.data.network.AuthService
 import com.example.sport_geo_app.ui.viewmodel.UserViewModel
 import com.example.sport_geo_app.utils.EncryptedPreferencesUtil
 import com.google.android.gms.auth.api.signin.GoogleSignIn
@@ -22,6 +22,7 @@ import com.google.android.gms.auth.api.signin.GoogleSignInClient
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.common.api.ApiException
 import okhttp3.*
+import org.json.JSONException
 import org.json.JSONObject
 
 class LoginActivity : AppCompatActivity() {
@@ -77,7 +78,7 @@ class LoginActivity : AppCompatActivity() {
             if (email.isNotEmpty() && password.isNotEmpty()) {
                 loginWithEmail(email, password)
             } else {
-                showToast("Please enter email and password")
+                displayErrorMessage("Please enter email and password")
             }
         }
     }
@@ -86,7 +87,7 @@ class LoginActivity : AppCompatActivity() {
         val acct = GoogleSignIn.getLastSignedInAccount(this)
         if (acct != null) {
             val idToken = acct.idToken
-            sendTokenToBackend(idToken)
+            loginWithGoogle(idToken)
         }
     }
 
@@ -95,16 +96,18 @@ class LoginActivity : AppCompatActivity() {
         signInLauncher.launch(signInIntent)
     }
 
-    private fun sendTokenToBackend(idToken: String?) {
+    private fun loginWithGoogle(idToken: String?) {
         if (idToken != null) {
-            authService.sendTokenToBackend(idToken) { response, error ->
+            authService.loginWithGoogle(idToken) { response, error ->
+                Log.d("LoginActivity", response.toString())
+                Log.d("LoginActivity", error.toString())
                 runOnUiThread {
                     if (error != null) {
-                        showToast("Authentication failed")
-                    } else if (response != null && response.isSuccessful) {
-                        handleSuccessResponse(response.body?.string())
+                        displayErrorMessage("Authentication failed")
+                    } else if (response != null) {
+                        handleSuccessResponse(response.string())
                     } else {
-                        showToast("Authentication failed")
+                        displayErrorMessage("Authentication failed")
                     }
                 }
             }
@@ -116,11 +119,12 @@ class LoginActivity : AppCompatActivity() {
         authService.loginWithEmail(email, password) { response, error ->
             runOnUiThread {
                 if (error != null) {
-                    handleErrorResponse(response)
-                } else if (response != null && response.isSuccessful) {
-                    handleSuccessResponse(response.body?.string())
+                    handleErrorResponse(error)
+                } else if (response != null) {
+                    handleSuccessResponse(response.string())
                 } else {
-                    handleErrorResponse(response)
+
+                    handleErrorResponse(null)
                 }
             }
         }
@@ -130,8 +134,6 @@ class LoginActivity : AppCompatActivity() {
     private fun handleSuccessResponse(responseBody: String?) {
         responseBody?.let {
             try {
-
-
                 val jsonObject = JSONObject(responseBody)
                 Log.d("LoginActivity", jsonObject.toString())
                 val userJson = jsonObject.getJSONObject("user")
@@ -140,51 +142,43 @@ class LoginActivity : AppCompatActivity() {
                 val userEmail = userJson.getString("email")
                 val userPoints = userJson.getString("points")
                 val userCountry = userJson.optString("country", null)
-
                 saveUserData(userId, jwtToken, userEmail, userPoints, userCountry)
                 navigateToMainActivity(userId, userEmail, userPoints)
             } catch (e: Exception) {
                 runOnUiThread {
-                    showToast("Failed to parse user info")
+                    displayErrorMessage("Failed to parse user info")
                 }
                 e.printStackTrace()
             }
         }
     }
+    private fun handleErrorResponse(error: Throwable?) {
 
-    // TODO ? just return err msg from back
-    private fun handleErrorResponse(response: Response?) {
-        response?.let {
-            val responseBody = response.body?.string()
-            responseBody?.let { body ->
+        error?.let { throwable ->
+            val errorMessage = throwable.message
+            Log.d("LoginActivity", errorMessage.toString())
+            Log.d("LoginActivity", error.toString())
+            if (!errorMessage.isNullOrEmpty()) {
                 try {
-                    val jsonObject = JSONObject(body)
-                    val errorArray = jsonObject.optJSONArray("message")
-
-                    val errorMessage = if (errorArray != null) {
-                        val errorMessages = mutableListOf<String>()
-                        for (i in 0 until errorArray.length()) {
-                            errorMessages.add(errorArray.getString(i))
-                        }
-                        errorMessages.joinToString(", ")
-                    } else {
-                        "Unknown error"
-                    }
+                    val jsonObject = JSONObject(errorMessage)
+                    val message = jsonObject.getString("message")
 
                     runOnUiThread {
-                        showToast(errorMessage)
+                        displayErrorMessage(message)
                     }
-                } catch (e: Exception) {
-                    runOnUiThread {
-                        showToast("Failed to parse error response")
-                    }
+                } catch (e: JSONException) {
                     e.printStackTrace()
+                    runOnUiThread {
+                        displayErrorMessage("Failed to parse error response")
+                    }
                 }
-            } ?: runOnUiThread {
-                showToast("Response body is null")
+            } else {
+                runOnUiThread {
+                    displayErrorMessage("Unknown error occurred: ${throwable.javaClass.simpleName}")
+                }
             }
         } ?: runOnUiThread {
-            showToast("Response is null")
+            displayErrorMessage("Response is null")
         }
     }
 
@@ -207,15 +201,15 @@ class LoginActivity : AppCompatActivity() {
             try {
                 val account = task.getResult(ApiException::class.java)
                 val idToken = account?.idToken
-                sendTokenToBackend(idToken)
+                loginWithGoogle(idToken)
             } catch (e: ApiException) {
-                showToast("Something went wrong")
+                displayErrorMessage("Something went wrong")
                 e.printStackTrace()
             }
         }
     }
 
-    private fun showToast(message: String) {
+    private fun displayErrorMessage(message: String) {
         Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
     }
 
