@@ -11,6 +11,7 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
+import com.airbnb.lottie.LottieAnimationView
 import com.example.sport_geo_app.MainActivity
 import com.example.sport_geo_app.R
 import com.example.sport_geo_app.utils.EncryptedPreferencesUtil
@@ -33,6 +34,7 @@ class LoginActivity : AppCompatActivity() {
     private lateinit var authService: AuthService
     private lateinit var encryptedSharedPreferences: SharedPreferences
 
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_login)
@@ -50,7 +52,8 @@ class LoginActivity : AppCompatActivity() {
             navigateToMainActivity()
         }
     }
-    private fun isLoggedIn(): Boolean { // TODO change better verification
+
+    private fun isLoggedIn(): Boolean {
         return encryptedSharedPreferences.contains("user_id")
     }
 
@@ -60,6 +63,7 @@ class LoginActivity : AppCompatActivity() {
         passwordInput = findViewById(R.id.password_input)
         emailLoginBtn = findViewById(R.id.email_login_btn)
         registerText = findViewById(R.id.register_btn)
+
     }
 
     private fun setupGoogleSignIn() {
@@ -113,7 +117,6 @@ class LoginActivity : AppCompatActivity() {
         }
     }
 
-
     private fun loginWithEmail(email: String, password: String) {
         authService.loginWithEmail(email, password) { response, error ->
             runOnUiThread {
@@ -122,13 +125,11 @@ class LoginActivity : AppCompatActivity() {
                 } else if (response != null) {
                     handleSuccessResponse(response.string())
                 } else {
-
                     handleErrorResponse(null)
                 }
             }
         }
     }
-
 
     private fun handleSuccessResponse(responseBody: String?) {
         responseBody?.let {
@@ -150,6 +151,7 @@ class LoginActivity : AppCompatActivity() {
             }
         }
     }
+
     private fun handleErrorResponse(error: Throwable?) {
         val errorMessage = error?.message
         val messageToShow = errorMessage?.let { message ->
@@ -166,7 +168,6 @@ class LoginActivity : AppCompatActivity() {
             displayErrorMessage(messageToShow)
         }
     }
-
 
     private fun saveUserData(userId: Int, jwtToken: String, userEmail: String, userPoints: String, userCountry: String?) {
         with(encryptedSharedPreferences.edit()) {
@@ -204,4 +205,3 @@ class LoginActivity : AppCompatActivity() {
         finish()
     }
 }
-

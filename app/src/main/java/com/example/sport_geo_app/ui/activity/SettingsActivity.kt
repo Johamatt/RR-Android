@@ -61,11 +61,11 @@ class SettingsActivity : AppCompatActivity() {
     private fun setupListeners() {
         saveCountryBtn.setOnClickListener {
             val selectedCountry = countrySpinner.selectedItem.toString()
-            save(selectedCountry)
+            updateUserCountry(selectedCountry)
         }
     }
 
-    private fun save(country: String) {
+    private fun updateUserCountry(country: String) {
         val userId = encryptedSharedPreferences.getInt("user_id", -1)
         if (userId != -1) {
             val requestBody = JSONObject().apply {
