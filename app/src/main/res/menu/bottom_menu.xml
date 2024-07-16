@@ -13,4 +13,9 @@
         android:id="@+id/bottom_routePlan"
         android:title="Route planner"
         android:icon="@drawable/done_icon"/>
+
+    <item
+        android:id="@+id/bottom_visits"
+        android:title="Visits"
+        android:icon="@drawable/baseline_checklist_24"/>
 </menu>

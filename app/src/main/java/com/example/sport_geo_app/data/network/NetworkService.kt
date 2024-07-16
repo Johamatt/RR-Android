@@ -8,6 +8,7 @@ import com.example.sport_geo_app.data.network.utils.AuthInterceptor
 import com.example.sport_geo_app.utils.EncryptedPreferencesUtil
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.OkHttpClient
+import okhttp3.RequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
 import okhttp3.ResponseBody
 import org.json.JSONObject
@@ -16,10 +17,12 @@ import retrofit2.Callback
 import retrofit2.Response
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
+import retrofit2.http.Body
 
 class NetworkService(private val context: Context) {
     private val EC2PublicIP = context.getString(R.string.EC2_PUBLIC_IP)
-    private val encryptedSharedPreferences = EncryptedPreferencesUtil.getEncryptedSharedPreferences(context)
+    private val encryptedSharedPreferences =
+        EncryptedPreferencesUtil.getEncryptedSharedPreferences(context)
 
     private val retrofit: Retrofit
 
@@ -39,12 +42,13 @@ class NetworkService(private val context: Context) {
     private val apiService: NetworkInterface = retrofit.create(NetworkInterface::class.java)
 
 
-
     fun checkProximity(
         requestBody: JSONObject,
-        callback: (response: ResponseBody?, error: Throwable?) -> Unit) {
+        callback: (response: ResponseBody?, error: Throwable?) -> Unit
+    ) {
 
-        val body = requestBody.toString().toRequestBody("application/json; charset=utf-8".toMediaTypeOrNull())
+        val body = requestBody.toString()
+            .toRequestBody("application/json; charset=utf-8".toMediaTypeOrNull())
         val call = apiService.checkProximity(body)
 
         call.enqueue(object : Callback<ResponseBody> {
@@ -66,10 +70,12 @@ class NetworkService(private val context: Context) {
 
     fun claimReward(
         requestBody: JSONObject,
-        callback: (response: ResponseBody?, error: Throwable?) -> Unit) {
+        callback: (response: ResponseBody?, error: Throwable?) -> Unit
+    ) {
 
 
-        val body = requestBody.toString().toRequestBody("application/json; charset=utf-8".toMediaTypeOrNull())
+        val body = requestBody.toString()
+            .toRequestBody("application/json; charset=utf-8".toMediaTypeOrNull())
         val call = apiService.claimReward(body)
 
         call.enqueue(object : Callback<ResponseBody> {
@@ -90,13 +96,41 @@ class NetworkService(private val context: Context) {
         })
     }
 
-    fun updateUserCountry(requestBody: JSONObject, callback: (response: ResponseBody?, error: Throwable?) -> Unit) {
-        val body = requestBody.toString().toRequestBody("application/json; charset=utf-8".toMediaTypeOrNull())
+    fun updateUserCountry(
+        requestBody: JSONObject,
+        callback: (response: ResponseBody?, error: Throwable?) -> Unit
+    ) {
+        val body = requestBody.toString()
+            .toRequestBody("application/json; charset=utf-8".toMediaTypeOrNull())
         val call = apiService.updateUserCountry(body)
 
         call.enqueue(object : Callback<ResponseBody> {
             override fun onResponse(call: Call<ResponseBody>, response: Response<ResponseBody>) {
 
+                if (response.isSuccessful) {
+                    callback(response.body(), null)
+                } else {
+                    val errorBody = response.errorBody()?.string()
+                    val errorMessage = response.message()
+                    callback(null, Throwable(errorBody ?: errorMessage ?: "Unknown error occurred"))
+                }
+            }
+
+            override fun onFailure(call: Call<ResponseBody>, t: Throwable) {
+                callback(null, t)
+            }
+        })
+    }
+
+
+    fun getVisits(
+        userId: Int,
+        callback: (response: ResponseBody?, error: Throwable?) -> Unit
+    ) {
+        val call = apiService.getVisits(userId)
+
+        call.enqueue(object : Callback<ResponseBody> {
+            override fun onResponse(call: Call<ResponseBody>, response: Response<ResponseBody>) {
                 if (response.isSuccessful) {
                     callback(response.body(), null)
                 } else {

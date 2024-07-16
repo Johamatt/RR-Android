@@ -18,3 +18,24 @@ data class Feature(
     val geometry: Geometry,
     val properties: PlaceModel
 )
+
+data class Visit(
+    val visitId: Int,
+    val createdAt: String,
+    val place: Place
+)
+
+data class Place(
+    val placeId: String,
+    val name: String,
+    val country: String,
+    val description: String,
+    val coordinates: Coordinates,
+    val createdAt: String,
+    val updatedAt: String
+)
+
+data class Coordinates(
+    val type: String,
+    val coordinates: List<Double>
+)
