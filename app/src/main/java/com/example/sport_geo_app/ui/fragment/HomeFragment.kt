@@ -54,11 +54,9 @@ class HomeFragment : Fragment() {
 
         val userId = encryptedSharedPreferences.getInt("user_id", -1)
         val userEmail = encryptedSharedPreferences.getString("user_email", "")
-        val userPoints = encryptedSharedPreferences.getString("user_points", "")
 
         view.findViewById<TextView>(R.id.user_id_text_view).text = userId.toString()
         view.findViewById<TextView>(R.id.user_email_text_view).text = userEmail
-        view.findViewById<TextView>(R.id.user_points_text_view).text = userPoints
 
         return view
     }

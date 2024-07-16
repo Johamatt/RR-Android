@@ -39,15 +39,6 @@
             android:textColor="@android:color/black"
             android:layout_marginBottom="8dp" />
 
-        <TextView
-            android:id="@+id/user_points_text_view"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="User Points"
-            android:textSize="18sp"
-            android:textColor="@android:color/black"
-            android:layout_marginBottom="16dp" />
-
         <Button
             android:id="@+id/sign_out_btn"
             android:layout_width="match_parent"

@@ -169,7 +169,6 @@ class MapFragment : Fragment() {
                             val coordinates = values.geometry() as? Point
                             coordinates?.let {
                                 val name = values.getStringProperty("name") ?: ""
-                                val points = values.getStringProperty("points") ?: ""
                                 val viewAnnotation = viewAnnotationManager.addViewAnnotation(
                                     resId = R.layout.point_info_layout,
                                     options = viewAnnotationOptions {
@@ -177,7 +176,6 @@ class MapFragment : Fragment() {
                                     }
                                 )
                                 viewAnnotation.findViewById<TextView>(R.id.point_name).text = name
-                                viewAnnotation.findViewById<TextView>(R.id.point_number).text = points
                                 val button = viewAnnotation.findViewById<Button>(R.id.claim_reward_button)
 
                                 button.setOnClickListener {
@@ -330,7 +328,6 @@ class MapFragment : Fragment() {
 
         val requestBody = JSONObject().apply {
             put("user_id", userId)
-            put("points_awarded", properties.points)
             put("placeId", properties.place_id)
         }
 

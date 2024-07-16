@@ -18,15 +18,6 @@
         android:textColor="@color/black"
         android:layout_marginBottom="8dp"/>
 
-    <TextView
-        android:id="@+id/point_number"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Number of points: 0"
-        android:textSize="16sp"
-        android:textColor="@color/dark_gray"
-        android:layout_marginBottom="16dp"/>
-
     <Button
         android:id="@+id/claim_reward_button"
         android:layout_width="match_parent"

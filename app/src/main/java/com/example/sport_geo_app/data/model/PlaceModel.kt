@@ -1,7 +1,6 @@
 package com.example.sport_geo_app.data.model
 
 data class PlaceModel(
-    val points: Int,
     val name: String,
     val updated_at: String,
     val description: String,

@@ -73,11 +73,10 @@ class RegisterActivity : AppCompatActivity() {
             }
         }
     }
-    private fun saveUserData(userId: Int, jwtToken: String, userEmail: String, userPoints: String) {
+    private fun saveUserData(userId: Int, jwtToken: String, userEmail: String) {
         with(encryptedSharedPreferences.edit()) {
             putInt("user_id", userId)
             putString("user_email", userEmail)
-            putString("user_points", userPoints)
             putString("user_country", null)
             putString("jwtToken", jwtToken)
             apply()
@@ -91,9 +90,8 @@ class RegisterActivity : AppCompatActivity() {
                 val jwtToken = jsonObject.getString("jwtToken")
                 val userId = userJson.getInt("user_id")
                 val userEmail = userJson.getString("email")
-                val userPoints = userJson.getString("points")
 
-                saveUserData(userId, jwtToken, userEmail, userPoints)
+                saveUserData(userId, jwtToken, userEmail)
                 runOnUiThread {
                     navigateToMainActivity()
                 }
