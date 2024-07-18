@@ -12,8 +12,8 @@ import androidx.recyclerview.widget.RecyclerView
 import android.widget.TextView
 import android.widget.Toast
 import com.example.sport_geo_app.R
-import com.example.sport_geo_app.data.model.Coordinates
-import com.example.sport_geo_app.data.model.Place
+import com.example.sport_geo_app.data.model.CoordinatesPoint
+import com.example.sport_geo_app.data.model.PlaceModel
 import com.example.sport_geo_app.data.model.Visit
 import com.example.sport_geo_app.data.network.NetworkService
 import com.example.sport_geo_app.utils.EncryptedPreferencesUtil
@@ -24,6 +24,7 @@ import java.util.*
 
 import okhttp3.ResponseBody
 import org.json.JSONArray
+import org.json.JSONObject
 import java.text.ParseException
 
 
@@ -45,7 +46,6 @@ class VisitsFragment : Fragment() {
 
 
         val userId = encryptedSharedPreferences.getInt("user_id", -1)
-        Log.d("VisitsFragment", userId.toString())
         if (userId != -1) {
             fetchVisitsData(userId, view)
         } else {
@@ -62,7 +62,6 @@ class VisitsFragment : Fragment() {
                 error != null -> showCustomToast(error.message)
                 response != null -> {
                     val visitsData = parseVisitsResponse(response)
-                    Log.d("VisitsFragment", visitsData.toString())
                     initializeRecyclerView(view, visitsData)
                 }
                 else -> showCustomToast("Unknown error occurred")
@@ -89,26 +88,53 @@ class VisitsFragment : Fragment() {
     private fun parseVisitsResponse(responseBody: ResponseBody): List<Visit> {
         val visits = mutableListOf<Visit>()
         val jsonArray = JSONArray(responseBody.string())
-        Log.d("VisitsFragment", jsonArray.toString())
+
 
         for (i in 0 until jsonArray.length()) {
+            Log.d("VisitsFragment", jsonArray.toString(i))
+
             val jsonObject = jsonArray.getJSONObject(i)
             val placeObject = jsonObject.getJSONObject("place")
-            val coordinatesArray = placeObject.getJSONObject("coordinates").getJSONArray("coordinates")
+            Log.d("VisitsFragment",placeObject.getJSONObject("pointCoordinates").toString())
+            val coordinatesArray = placeObject.getJSONObject("pointCoordinates").getJSONArray("coordinates")
 
-            val coordinates = Coordinates(
-                type = placeObject.getJSONObject("coordinates").getString("type"),
+            val coordinates = CoordinatesPoint(
+                type = placeObject.getJSONObject("pointCoordinates").getString("type"),
                 coordinates = listOf(coordinatesArray.getDouble(0), coordinatesArray.getDouble(1))
             )
 
-            val place = Place(
-                placeId = placeObject.getString("place_id"),
-                name = placeObject.getString("name"),
+
+            //TODO requestModels
+            val place = PlaceModel(
+                placeId = placeObject.getString("placeId"),
+                nameFi = placeObject.getString("nameFi"),
                 country = placeObject.getString("country"),
-                description = placeObject.getString("description"),
-                coordinates = coordinates,
-                createdAt = placeObject.getString("created_at"),
-                updatedAt = placeObject.getString("updated_at")
+                lisätieto = placeObject.getString("lisätieto"),
+                pointCoordinates = coordinates,
+                liikuntapaikkaTyyppi = placeObject.getString("liikuntapaikkaTyyppi"),
+                liikuntapaikkatyypinAlaryhmä = placeObject.getString("liikuntapaikkatyypinAlaryhmä"),
+                liikuntapaikkatyypinPääryhmä = placeObject.getString("liikuntapaikkatyypinPääryhmä"),
+                postinumero = placeObject.getString("postinumero"),
+                katuosoite = placeObject.getString("katuosoite"),
+                kentänLeveysM = null,
+                kentänPituusM = null,
+                kunta = null,
+                kuntaosa = null,
+                liikuntapintaalaM2 = null,
+                linestringCoordinates = null,
+                maakunta = null,
+                markkinointinimi = null,
+                muokattuViimeksi = null,
+                omistaja = null,
+                peruskorjausvuodet = null,
+                pintamateriaali = null,
+                pintamateriaaliLisätieto = null,
+                polygonCoordinates = null,
+                postitoimipaikka = null,
+                puhelinnumero = null,
+                sähköposti = null,
+                www = null,
+                aviAlue = null
             )
 
             val visit = Visit(
@@ -145,10 +171,10 @@ class VisitsAdapter(private val visits: List<Visit>) : RecyclerView.Adapter<Visi
 
         holder.visitIdTextView.text = visit.visitId.toString()
         holder.createdAtTextView.text = formatDate(visit.createdAt)
-        holder.nameTextView.text = visit.place.name
+        holder.nameTextView.text = visit.place.nameFi
         holder.countryTextView.text = visit.place.country
-        holder.descriptionTextView.text = visit.place.description
-        holder.coordinatesTextView.text = visit.place.coordinates.toString()
+        holder.descriptionTextView.text = visit.place.lisätieto
+        holder.coordinatesTextView.text = visit.place.pointCoordinates.toString()
     }
 
     override fun getItemCount(): Int {

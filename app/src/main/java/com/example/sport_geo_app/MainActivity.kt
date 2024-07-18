@@ -10,7 +10,6 @@ import android.content.Intent
 import android.content.SharedPreferences
 import androidx.lifecycle.ViewModelProvider
 import com.example.sport_geo_app.ui.activity.SettingsActivity
-import com.example.sport_geo_app.ui.fragment.RoutePlanFragment
 import com.example.sport_geo_app.ui.fragment.VisitsFragment
 import com.example.sport_geo_app.ui.viewmodel.UserViewModel
 import com.example.sport_geo_app.utils.EncryptedPreferencesUtil
@@ -39,10 +38,7 @@ class MainActivity : AppCompatActivity() {
                     openFragment(MapFragment())
                     true
                 }
-                R.id.bottom_routePlan -> {
-                    openFragment(RoutePlanFragment())
-                    true
-                }
+
                 R.id.bottom_visits -> {
                     openFragment(VisitsFragment())
                     true

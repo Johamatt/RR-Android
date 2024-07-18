@@ -168,7 +168,7 @@ class MapFragment : Fragment() {
 
                             val coordinates = values.geometry() as? Point
                             coordinates?.let {
-                                val name = values.getStringProperty("name") ?: ""
+                                val name = values.getStringProperty("nameFi") ?: ""
                                 val viewAnnotation = viewAnnotationManager.addViewAnnotation(
                                     resId = R.layout.point_info_layout,
                                     options = viewAnnotationOptions {
@@ -293,12 +293,11 @@ class MapFragment : Fragment() {
     }
 
 
-
     private fun checkProximityAndClaimReward(userCoordinates: Point, values: Feature) {
         val coordinates = (values.geometry() as Point).coordinates()
         val requestBody = JSONObject().apply {
-            put("userLatitude", 60.250665664) // userCoordinates.latitude()
-            put("userLongitude", 24.839829974) // userCoordinates.longitude()
+            put("userLatitude", 60.250620) // userCoordinates.latitude()
+            put("userLongitude", 24.846747) // userCoordinates.longitude()
             put("markerLatitude", coordinates[1])
             put("markerLongitude", coordinates[0])
         }
@@ -323,12 +322,15 @@ class MapFragment : Fragment() {
     }
 
     private fun claimReward(values: Feature) {
+
+        Log.d("MapFragment", values.toString())
         val properties = Gson().fromJson(values.properties().toString(), PlaceModel::class.java)
         val userId = encryptedSharedPreferences.getInt("user_id", -1)
 
+        Log.d("MapFragment", properties.toString())
         val requestBody = JSONObject().apply {
             put("user_id", userId)
-            put("placeId", properties.place_id)
+            put("placeId", properties.placeId)
         }
 
         networkService.claimReward(

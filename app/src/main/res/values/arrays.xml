@@ -1,8 +1,8 @@
 
 <resources>
     <string-array name="countries">
-        <item>Finland</item>
-        <item>Sweden</item>
-        <item>Norway</item>
+        <item>FI</item>
+        <item>SE</item>
+        <item>NO</item>
     </string-array>
 </resources>
