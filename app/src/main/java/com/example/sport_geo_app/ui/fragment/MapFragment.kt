@@ -12,13 +12,13 @@ import android.view.ViewGroup
 import android.widget.Button
 import android.widget.TextView
 import android.widget.Toast
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
-import com.example.sport_geo_app.BuildConfig
 import com.example.sport_geo_app.utils.LocationListener
 import com.example.sport_geo_app.utils.BitmapUtils
-import com.example.sport_geo_app.utils.LocationPermissionHelper
 import com.mapbox.geojson.Point
 import com.mapbox.maps.CameraOptions
 import com.mapbox.maps.MapView
@@ -58,16 +58,19 @@ import okhttp3.Request
 import org.json.JSONException
 import org.json.JSONObject
 import java.io.IOException
+import android.Manifest
+
 
 class MapFragment : Fragment() {
 
     private lateinit var mapView: MapView
     private lateinit var locationListener: LocationListener
-    private lateinit var locationPermissionHelper: LocationPermissionHelper
     private lateinit var viewAnnotationManager: ViewAnnotationManager
     private lateinit var userViewModel: UserViewModel
     private lateinit var networkService: NetworkService
     private lateinit var encryptedSharedPreferences: SharedPreferences
+    private lateinit var requestPermissionLauncher: ActivityResultLauncher<Array<String>>
+
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
@@ -82,28 +85,20 @@ class MapFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        locationPermissionHelper = LocationPermissionHelper(WeakReference(requireActivity()))
-        locationPermissionHelper.checkPermissions {
-            initializeMap()
+        requestPermissionLauncher = registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { permissions ->
+            val allPermissionsGranted = permissions.values.all { it }
+            if (allPermissionsGranted) {
+                initializeMap()
+            } else {
+                showCustomToast("Permissions not granted")
+            }
         }
-    }
-
-    // TODO deprecated
-    @Deprecated("This declaration overrides deprecated member but not marked as deprecated itself. Please add @Deprecated annotation or suppress. See https://youtrack.jetbrains.com/issue/KT-47902 for details")
-    override fun onRequestPermissionsResult(
-        requestCode: Int,
-        permissions: Array<String>,
-        grantResults: IntArray
-    ) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        locationPermissionHelper.onRequestPermissionsResult(requestCode, permissions, grantResults)
-    }
-
-    override fun onDestroy() {
-        super.onDestroy()
-        if (::locationListener.isInitialized) {
-            locationListener.onDestroy(mapView)
-        }
+        requestPermissionLauncher.launch(
+            arrayOf(
+                Manifest.permission.ACCESS_FINE_LOCATION,
+                Manifest.permission.ACCESS_COARSE_LOCATION
+            )
+        )
     }
 
     private fun initializeMap() {

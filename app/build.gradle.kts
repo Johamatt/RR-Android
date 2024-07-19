@@ -59,6 +59,9 @@ android {
 
 dependencies {
 
+    implementation("androidx.fragment:fragment-ktx:1.8.1")
+    implementation("androidx.activity:activity-ktx:1.9.0")
+
     implementation ("androidx.security:security-crypto:1.1.0-alpha03")
 
     implementation("com.airbnb.android:lottie:6.4.0")
