@@ -18,13 +18,43 @@
         android:textColor="@color/black"
         android:layout_marginBottom="8dp"/>
 
+    <TextView
+        android:id="@+id/point_type"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Point Type"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        android:textColor="@color/black"
+        android:layout_marginBottom="8dp"/>
+
+    <TextView
+        android:id="@+id/point_address"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Point Address"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        android:textColor="@color/black"
+        android:layout_marginBottom="8dp"/>
+
     <Button
         android:id="@+id/claim_reward_button"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-
         android:text="Claim"
         android:textColor="@color/white"
         android:gravity="center"/>
+
+    <Button
+        android:id="@+id/info_button"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Info"
+        android:textColor="@color/white"
+        android:gravity="center"/>
+
+
+
 
 </LinearLayout>

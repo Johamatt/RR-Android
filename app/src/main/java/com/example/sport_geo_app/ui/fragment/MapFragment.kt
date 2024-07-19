@@ -44,7 +44,7 @@ import com.mapbox.maps.viewannotation.geometry
 import com.mapbox.maps.viewannotation.viewAnnotationOptions
 import java.lang.ref.WeakReference
 import com.example.sport_geo_app.R
-import com.example.sport_geo_app.data.model.PlaceModel
+import com.example.sport_geo_app.data.model.PlaceMapMarkerModel
 import com.example.sport_geo_app.data.network.NetworkService
 import com.example.sport_geo_app.ui.viewmodel.UserViewModel
 import com.example.sport_geo_app.utils.EncryptedPreferencesUtil
@@ -55,7 +55,6 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import okhttp3.OkHttpClient
 import okhttp3.Request
-import okhttp3.Response
 import org.json.JSONException
 import org.json.JSONObject
 import java.io.IOException
@@ -147,46 +146,54 @@ class MapFragment : Fragment() {
                 val values = feature.queriedFeature.feature
                 when (layer) {
                     "clusters" -> {
-                            val coordinates = values.geometry() as? Point
-                            coordinates?.let {
-                                val currentZoom = mapView.mapboxMap.cameraState.zoom
-                                val newZoom = if (currentZoom >= 12.0) currentZoom + 1 else 12.0
-                                mapView.mapboxMap.flyTo(
-                                    CameraOptions.Builder()
-                                        .zoom(newZoom)
-                                        .pitch(0.0)
-                                        .center(coordinates)
-                                        .build(),
-                                    MapAnimationOptions.Builder()
-                                        .duration(1000)
-                                        .build()
-                                )
-                            }
+                        val coordinates = values.geometry() as? Point
+                        coordinates?.let {
+                            val currentZoom = mapView.mapboxMap.cameraState.zoom
+                            val newZoom = if (currentZoom >= 12.0) currentZoom + 1 else 12.0
+                            mapView.mapboxMap.flyTo(
+                                CameraOptions.Builder()
+                                    .zoom(newZoom)
+                                    .pitch(0.0)
+                                    .center(coordinates)
+                                    .build(),
+                                MapAnimationOptions.Builder()
+                                    .duration(1000)
+                                    .build()
+                            )
+                        }
                     }
 
                     "unclustered-points" -> {
-
-                            val coordinates = values.geometry() as? Point
-                            coordinates?.let {
-                                val name = values.getStringProperty("nameFi") ?: ""
-                                val viewAnnotation = viewAnnotationManager.addViewAnnotation(
-                                    resId = R.layout.point_info_layout,
-                                    options = viewAnnotationOptions {
-                                        geometry(coordinates)
-                                    }
-                                )
-                                viewAnnotation.findViewById<TextView>(R.id.point_name).text = name
-                                val button = viewAnnotation.findViewById<Button>(R.id.claim_reward_button)
-
-                                button.setOnClickListener {
-                                    val currentLocation = locationListener.getCurrentLocation()
-                                    if (currentLocation != null) {
-                                        checkProximityAndClaimReward(currentLocation,  values)
-                                    } else {
-                                        showCustomToast("Unable to get current location")
-                                    }
+                        val coordinates = values.geometry() as? Point
+                        coordinates?.let {
+                            val viewAnnotation = viewAnnotationManager.addViewAnnotation(
+                                resId = R.layout.point_info_layout,
+                                options = viewAnnotationOptions {
+                                    geometry(coordinates)
+                                }
+                            )
+                            val placeMarker = Gson().fromJson(values.properties().toString(), PlaceMapMarkerModel::class.java)
+                            val name = placeMarker.nameFi
+                            val address = placeMarker.katuosoite
+                            val type = placeMarker.liikuntapaikkaTyyppi
+                            viewAnnotation.findViewById<TextView>(R.id.point_name).text = name
+                            viewAnnotation.findViewById<TextView>(R.id.point_address).text = address
+                            viewAnnotation.findViewById<TextView>(R.id.point_type).text = type
+                            val button = viewAnnotation.findViewById<Button>(R.id.claim_reward_button)
+                            val infoButton = viewAnnotation.findViewById<Button>(R.id.info_button)
+                            button.setOnClickListener {
+                                val currentLocation = locationListener.getCurrentLocation()
+                                if (currentLocation != null) {
+                                    checkProximityAndClaimReward(currentLocation,  values)
+                                } else {
+                                    showCustomToast("Unable to get current location")
                                 }
                             }
+                            infoButton.setOnClickListener {
+                                val infoFragment = InfoFragment.newInstance(name, address, type)
+                                infoFragment.show(parentFragmentManager, "infoFragment")
+                            }
+                        }
 
                     }
                 }
@@ -324,7 +331,7 @@ class MapFragment : Fragment() {
     private fun claimReward(values: Feature) {
 
         Log.d("MapFragment", values.toString())
-        val properties = Gson().fromJson(values.properties().toString(), PlaceModel::class.java)
+        val properties = Gson().fromJson(values.properties().toString(), PlaceMapMarkerModel::class.java)
         val userId = encryptedSharedPreferences.getInt("user_id", -1)
 
         Log.d("MapFragment", properties.toString())

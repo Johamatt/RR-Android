@@ -54,3 +54,9 @@ data class LineString(
     val coordinates: List<List<Double>>
 )
 
+data class PlaceMapMarkerModel(
+    val placeId: String,
+    val liikuntapaikkaTyyppi: String,
+    val nameFi: String,
+    val katuosoite: String,
+)

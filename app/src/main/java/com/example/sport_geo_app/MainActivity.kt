@@ -60,21 +60,23 @@ class MainActivity : AppCompatActivity() {
 
     private fun openFragment(fragment: Fragment) {
         val transaction = supportFragmentManager.beginTransaction()
+        val fragmentTag = fragment.javaClass.simpleName
 
-        val currentFragment = supportFragmentManager.primaryNavigationFragment
-        if (currentFragment != null) {
-            transaction.hide(currentFragment)
-        }
 
-        val tag = fragment.javaClass.simpleName
-        var fragmentTemp = supportFragmentManager.findFragmentByTag(tag)
-        if (fragmentTemp == null) {
-            fragmentTemp = fragment
-            transaction.add(R.id.frame_container, fragmentTemp, tag)
+        val existingFragment = supportFragmentManager.findFragmentByTag(fragmentTag)
+        if (existingFragment != null) {
+            transaction.show(existingFragment)
         } else {
-            transaction.show(fragmentTemp)
+            transaction.add(R.id.frame_container, fragment, fragmentTag)
         }
-        transaction.setPrimaryNavigationFragment(fragmentTemp)
+
+        supportFragmentManager.fragments.forEach {
+            if (it != fragment && it.isVisible) {
+                transaction.hide(it)
+            }
+        }
+
+        transaction.addToBackStack(fragmentTag)
         transaction.setReorderingAllowed(true)
         transaction.commit()
     }
