@@ -8,21 +8,20 @@ import retrofit2.http.GET
 import retrofit2.http.Headers
 import retrofit2.http.PATCH
 import retrofit2.http.POST
-import retrofit2.http.Path
 import retrofit2.http.Query
 
 interface NetworkInterface {
-    @POST("places/check-proximity")
-    @Headers("Content-Type: application/json")
-    fun checkProximity(@Body requestBody: RequestBody): Call<ResponseBody>
     @POST("visits")
     @Headers("Content-Type: application/json")
-    fun claimReward(@Body requestBody: RequestBody): Call<ResponseBody>
+    fun markVisit(@Body requestBody: RequestBody): Call<ResponseBody>
     @PATCH("users/country")
     @Headers("Content-Type: application/json")
     fun updateUserCountry(@Body requestBody: RequestBody): Call<ResponseBody>
     @GET("visits")
     @Headers("Content-Type: application/json")
     fun getVisits(@Query("user_id") userId: Int): Call<ResponseBody>
+    @GET("places/GeoJsonPointsByCountry")
+    @Headers("Content-Type: application/json")
+    fun getGeoJson(@Query("country") country: String): Call<ResponseBody>
 }
 

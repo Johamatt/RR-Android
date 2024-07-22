@@ -59,6 +59,8 @@ import org.json.JSONException
 import org.json.JSONObject
 import java.io.IOException
 import android.Manifest
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.withContext
 
 
 class MapFragment : Fragment() {
@@ -66,7 +68,6 @@ class MapFragment : Fragment() {
     private lateinit var mapView: MapView
     private lateinit var locationListener: LocationListener
     private lateinit var viewAnnotationManager: ViewAnnotationManager
-    private lateinit var userViewModel: UserViewModel
     private lateinit var networkService: NetworkService
     private lateinit var encryptedSharedPreferences: SharedPreferences
     private lateinit var requestPermissionLauncher: ActivityResultLauncher<Array<String>>
@@ -76,7 +77,6 @@ class MapFragment : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
     ): View? {
         encryptedSharedPreferences = EncryptedPreferencesUtil.getEncryptedSharedPreferences(requireContext())
-        userViewModel = ViewModelProvider(requireActivity())[UserViewModel::class.java]
         networkService = NetworkService(requireContext())
         return inflater.inflate(R.layout.fragment_map, container, false).apply {
             mapView = findViewById(R.id.mapView)
@@ -100,7 +100,6 @@ class MapFragment : Fragment() {
             )
         )
     }
-
     private fun initializeMap() {
         mapView.mapboxMap.apply {
             setCamera(CameraOptions.Builder().zoom(10.0).pitch(0.0).build())
@@ -123,123 +122,49 @@ class MapFragment : Fragment() {
             }
         }
     }
-
-
-    // TODO fix mess
-    private fun handleMapClick(point: Point) {
-        if (!::viewAnnotationManager.isInitialized) {
-            return
-        }
-        val screenPoint = mapView.mapboxMap.pixelForCoordinate(point)
-        viewAnnotationManager.removeAllViewAnnotations()
-        mapView.mapboxMap.queryRenderedFeatures(
-            RenderedQueryGeometry(screenPoint),
-            RenderedQueryOptions(listOf("unclustered-points", "clusters"), null)
-        ) { features ->
-            features.value?.firstOrNull()?.let { feature ->
-                val layer = feature.layers.getOrNull(0)
-                val values = feature.queriedFeature.feature
-                when (layer) {
-                    "clusters" -> {
-                        val coordinates = values.geometry() as? Point
-                        coordinates?.let {
-                            val currentZoom = mapView.mapboxMap.cameraState.zoom
-                            val newZoom = if (currentZoom >= 12.0) currentZoom + 1 else 12.0
-                            mapView.mapboxMap.flyTo(
-                                CameraOptions.Builder()
-                                    .zoom(newZoom)
-                                    .pitch(0.0)
-                                    .center(coordinates)
-                                    .build(),
-                                MapAnimationOptions.Builder()
-                                    .duration(1000)
-                                    .build()
-                            )
-                        }
-                    }
-
-                    "unclustered-points" -> {
-                        val coordinates = values.geometry() as? Point
-                        coordinates?.let {
-                            val viewAnnotation = viewAnnotationManager.addViewAnnotation(
-                                resId = R.layout.point_info_layout,
-                                options = viewAnnotationOptions {
-                                    geometry(coordinates)
-                                }
-                            )
-                            val placeMarker = Gson().fromJson(values.properties().toString(), PlaceMapMarkerModel::class.java)
-                            val name = placeMarker.nameFi
-                            val address = placeMarker.katuosoite
-                            val type = placeMarker.liikuntapaikkaTyyppi
-                            viewAnnotation.findViewById<TextView>(R.id.point_name).text = name
-                            viewAnnotation.findViewById<TextView>(R.id.point_address).text = address
-                            viewAnnotation.findViewById<TextView>(R.id.point_type).text = type
-                            val button = viewAnnotation.findViewById<Button>(R.id.claim_reward_button)
-                            val infoButton = viewAnnotation.findViewById<Button>(R.id.info_button)
-                            button.setOnClickListener {
-                                val currentLocation = locationListener.getCurrentLocation()
-                                if (currentLocation != null) {
-                                    checkProximityAndClaimReward(currentLocation,  values)
-                                } else {
-                                    showCustomToast("Unable to get current location")
-                                }
-                            }
-                            infoButton.setOnClickListener {
-                                val infoFragment = InfoFragment.newInstance(name, address, type)
-                                infoFragment.show(parentFragmentManager, "infoFragment")
-                            }
-                        }
-
-                    }
-                }
-            }
-        }
-    }
-
-
-    // TODO replace globalscope
     private fun addClusteredGeoJsonSource(style: Style) {
         val userCountry = encryptedSharedPreferences.getString("user_country", null)
         val token = encryptedSharedPreferences.getString("jwtToken", null)
 
-        GlobalScope.launch(Dispatchers.IO) {
-            val client = OkHttpClient()
-            val request = Request.Builder()
-                .url("${getString(R.string.EC2_PUBLIC_IP)}/places/country/$userCountry")
-                .header("Authorization", "Bearer $token")
-                .build()
+        if (userCountry == null || token == null) {
+            Log.e("MapFragment", "User country or token is null")
+            return
+        }
 
-            try {
-                val response = client.newCall(request).execute()
-                if (response.isSuccessful) {
-                    val geoJsonString = response.body?.string()
+        networkService.getGeoJson(country = userCountry) { response, error ->
+            if (error != null) {
+                Log.e("MapFragment", "Network error: ${error.message}")
+                return@getGeoJson
+            }
 
-                    requireActivity().runOnUiThread {
+            if (response != null) {
+                val geoJsonString = response.string()
+                if (!geoJsonString.isNullOrEmpty()) {
+                    lifecycleScope.launch(Dispatchers.Main) {
                         style.addSource(
                             geoJsonSource(GEOJSON_SOURCE_ID) {
-                                if (!geoJsonString.isNullOrEmpty()) {
-                                    data(geoJsonString)
-                                }
+                                data(geoJsonString)
                                 cluster(true)
                                 maxzoom(14)
                                 clusterRadius(50)
                             }
                         )
+                        addMapLayers(style)
                     }
                 } else {
-                    Log.e("MapFragment", "Unsuccessful response: ${response.code}")
+                    Log.e("MapFragment", "GeoJSON data is null or empty")
                 }
-            } catch (e: IOException) {
-                Log.e("MapFragment", "Network error: ${e.message}")
+            } else {
+                Log.e("MapFragment", "No response received")
             }
         }
+    }
 
+    private fun addMapLayers(style: Style) {
         style.addLayer(
             symbolLayer("unclustered-points", GEOJSON_SOURCE_ID) {
                 iconAllowOverlap(false)
-                iconImage(
-                    literal(PIN_ID)
-                )
+                iconImage(literal(PIN_ID))
                 iconSize(literal(1))
             }
         )
@@ -258,14 +183,10 @@ class MapFragment : Fragment() {
                         output = literal(ColorUtils.colorToRgbaString(layers[2][1])),
                         stops = arrayOf(
                             literal(layers[1][0].toDouble()) to literal(
-                                ColorUtils.colorToRgbaString(
-                                    layers[1][1]
-                                )
+                                ColorUtils.colorToRgbaString(layers[1][1])
                             ),
                             literal(layers[0][0].toDouble()) to literal(
-                                ColorUtils.colorToRgbaString(
-                                    layers[0][1]
-                                )
+                                ColorUtils.colorToRgbaString(layers[0][1])
                             )
                         )
                     )
@@ -278,13 +199,11 @@ class MapFragment : Fragment() {
         style.addLayer(
             symbolLayer("count", GEOJSON_SOURCE_ID) {
                 textField(format {
-                    formatSection(com.mapbox.maps.extension.style.expressions.dsl.generated.toString {
-                        get {
-                            literal(
-                                "point_count"
-                            )
+                    formatSection(
+                        com.mapbox.maps.extension.style.expressions.dsl.generated.toString {
+                            get { literal("point_count") }
                         }
-                    })
+                    )
                 })
                 textSize(12.0)
                 textColor(Color.WHITE)
@@ -293,69 +212,6 @@ class MapFragment : Fragment() {
             }
         )
     }
-
-
-    private fun checkProximityAndClaimReward(userCoordinates: Point, values: Feature) {
-        val coordinates = (values.geometry() as Point).coordinates()
-        val requestBody = JSONObject().apply {
-            put("userLatitude", 60.250620) // userCoordinates.latitude()
-            put("userLongitude", 24.846747) // userCoordinates.longitude()
-            put("markerLatitude", coordinates[1])
-            put("markerLongitude", coordinates[0])
-        }
-
-        networkService.checkProximity(requestBody) { response, error ->
-            if (error != null) {
-                showCustomToast("Error: ${error.message}")
-            } else {
-                val responseBody = response?.string()
-                if (responseBody != null) {
-                    val isNearby = JSONObject(responseBody).getBoolean("isNearby")
-                    if (isNearby) {
-                        claimReward(values)
-                    } else {
-                        showCustomToast("You are not nearby the marker")
-                    }
-                } else {
-                    showCustomToast("Unknown error occurred")
-                }
-            }
-        }
-    }
-
-    private fun claimReward(values: Feature) {
-
-        Log.d("MapFragment", values.toString())
-        val properties = Gson().fromJson(values.properties().toString(), PlaceMapMarkerModel::class.java)
-        val userId = encryptedSharedPreferences.getInt("user_id", -1)
-
-        Log.d("MapFragment", properties.toString())
-        val requestBody = JSONObject().apply {
-            put("user_id", userId)
-            put("placeId", properties.placeId)
-        }
-
-        networkService.claimReward(
-            requestBody,
-            callback = { response, error ->
-                if (error != null) {
-                    try {
-                        val errorJson = JSONObject(error.message)
-                        val errorMessage = errorJson.getString("message")
-                        showCustomToast(errorMessage)
-                    } catch (e: JSONException) {
-                        showCustomToast("Error parsing err response")
-                    }
-                } else {
-                    showCustomToast("Reward claimed successfully!")
-                }
-            }
-        )
-
-
-
-    }
-
 
     private fun showCustomToast(message: String) {
         val layoutInflater = layoutInflater
@@ -375,6 +231,113 @@ class MapFragment : Fragment() {
             show()
         }
     }
+
+    private fun handleMapClick(point: Point) {
+        if (!::viewAnnotationManager.isInitialized) {
+            return
+        }
+
+        val screenPoint = mapView.mapboxMap.pixelForCoordinate(point)
+        viewAnnotationManager.removeAllViewAnnotations()
+
+        mapView.mapboxMap.queryRenderedFeatures(
+            RenderedQueryGeometry(screenPoint),
+            RenderedQueryOptions(listOf("unclustered-points", "clusters"), null)
+        ) { features ->
+            features.value?.firstOrNull()?.let { feature ->
+                val layer = feature.layers.getOrNull(0)
+                val values = feature.queriedFeature.feature
+
+                when (layer) {
+                    "clusters" -> handleClusterClick(values)
+                    "unclustered-points" -> handleUnclusteredPointClick(values)
+                }
+            }
+        }
+    }
+
+    private fun handleClusterClick(values: Feature) {
+        (values.geometry() as? Point)?.let { coordinates ->
+            val currentZoom = mapView.mapboxMap.cameraState.zoom
+            val newZoom = if (currentZoom >= 12.0) currentZoom + 1 else 12.0
+            mapView.mapboxMap.flyTo(
+                CameraOptions.Builder()
+                    .zoom(newZoom)
+                    .pitch(0.0)
+                    .center(coordinates)
+                    .build(),
+                MapAnimationOptions.Builder()
+                    .duration(1000)
+                    .build()
+            )
+        }
+    }
+    private fun handleUnclusteredPointClick(values: Feature) {
+        (values.geometry() as? Point)?.let { coordinates ->
+            val viewAnnotation = viewAnnotationManager.addViewAnnotation(
+                resId = R.layout.point_info_layout,
+                options = viewAnnotationOptions {
+                    geometry(coordinates)
+                }
+            )
+
+            val placeMarker = Gson().fromJson(values.properties().toString(), PlaceMapMarkerModel::class.java)
+            val name = placeMarker.nameFi
+            val address = placeMarker.katuosoite
+            val type = placeMarker.liikuntapaikkaTyyppi
+
+            viewAnnotation.apply {
+                findViewById<TextView>(R.id.point_name).text = name
+                findViewById<TextView>(R.id.point_address).text = address
+                findViewById<TextView>(R.id.point_type).text = type
+                findViewById<Button>(R.id.mark_visited_button).setOnClickListener {
+                    markVisitButtonClick(values)
+                }
+                findViewById<Button>(R.id.info_button).setOnClickListener {
+                    handleInfoButtonClick(name, address, type)
+                }
+            }
+        }
+    }
+
+    private fun handleInfoButtonClick(name: String, address: String, type: String) {
+        val infoFragment = InfoFragment.newInstance(name, address, type)
+        infoFragment.show(parentFragmentManager, "infoFragment")
+    }
+
+    private fun markVisitButtonClick(values: Feature) {
+        val currentLocation = locationListener.getCurrentLocation()
+        if (currentLocation != null) {
+            val properties = Gson().fromJson(values.properties().toString(), PlaceMapMarkerModel::class.java)
+            val userId = encryptedSharedPreferences.getInt("user_id", -1)
+
+            val requestBody = JSONObject().apply {
+                put("user_id", userId)
+                put("placeId", properties.placeId)
+            }
+
+            networkService.markVisit(
+                requestBody,
+                callback = { _, error ->
+                    if (error != null) {
+                        try {
+                            val errorJson = JSONObject(error.message)
+                            val errorMessage = errorJson.getString("message")
+                            showCustomToast(errorMessage)
+                        } catch (e: JSONException) {
+                            showCustomToast("Error parsing err response")
+                        }
+                    } else {
+                        showCustomToast("Place added to visits")
+                    }
+                }
+            )
+        } else {
+            showCustomToast("Unable to get current location")
+        }
+    }
+
+
 
     companion object {
         private const val GEOJSON_SOURCE_ID = "places"

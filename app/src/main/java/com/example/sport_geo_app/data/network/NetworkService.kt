@@ -41,42 +41,13 @@ class NetworkService(private val context: Context) {
 
     private val apiService: NetworkInterface = retrofit.create(NetworkInterface::class.java)
 
-
-    fun checkProximity(
+    fun markVisit(
         requestBody: JSONObject,
         callback: (response: ResponseBody?, error: Throwable?) -> Unit
     ) {
-
         val body = requestBody.toString()
             .toRequestBody("application/json; charset=utf-8".toMediaTypeOrNull())
-        val call = apiService.checkProximity(body)
-
-        call.enqueue(object : Callback<ResponseBody> {
-            override fun onResponse(call: Call<ResponseBody>, response: Response<ResponseBody>) {
-                if (response.isSuccessful) {
-                    callback(response.body(), null)
-                } else {
-                    val errorBody = response.errorBody()?.string()
-                    val errorMessage = response.message()
-                    callback(null, Throwable(errorBody ?: errorMessage ?: "Unknown error occurred"))
-                }
-            }
-
-            override fun onFailure(call: Call<ResponseBody>, t: Throwable) {
-                callback(null, t)
-            }
-        })
-    }
-
-    fun claimReward(
-        requestBody: JSONObject,
-        callback: (response: ResponseBody?, error: Throwable?) -> Unit
-    ) {
-
-
-        val body = requestBody.toString()
-            .toRequestBody("application/json; charset=utf-8".toMediaTypeOrNull())
-        val call = apiService.claimReward(body)
+        val call = apiService.markVisit(body)
 
         call.enqueue(object : Callback<ResponseBody> {
             override fun onResponse(call: Call<ResponseBody>, response: Response<ResponseBody>) {
@@ -122,7 +93,6 @@ class NetworkService(private val context: Context) {
         })
     }
 
-
     fun getVisits(
         userId: Int,
         callback: (response: ResponseBody?, error: Throwable?) -> Unit
@@ -140,6 +110,27 @@ class NetworkService(private val context: Context) {
                 }
             }
 
+            override fun onFailure(call: Call<ResponseBody>, t: Throwable) {
+                callback(null, t)
+            }
+        })
+    }
+
+    fun getGeoJson(
+        country: String,
+        callback: (response: ResponseBody?, error: Throwable?) -> Unit
+    ) {
+        val call = apiService.getGeoJson(country)
+        call.enqueue(object : Callback<ResponseBody> {
+            override fun onResponse(call: Call<ResponseBody>, response: Response<ResponseBody>) {
+                if (response.isSuccessful) {
+                    callback(response.body(), null)
+                } else {
+                    val errorBody = response.errorBody()?.string()
+                    val errorMessage = response.message()
+                    callback(null, Throwable(errorBody ?: errorMessage ?: "Unknown error occurred"))
+                }
+            }
             override fun onFailure(call: Call<ResponseBody>, t: Throwable) {
                 callback(null, t)
             }
