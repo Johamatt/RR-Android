@@ -20,8 +20,8 @@ interface NetworkInterface {
     @GET("visits")
     @Headers("Content-Type: application/json")
     fun getVisits(@Query("user_id") userId: Int): Call<ResponseBody>
-    @GET("places/GeoJsonPointsByCountry")
+    @GET("places/GeoJsonPoints")
     @Headers("Content-Type: application/json")
-    fun getGeoJson(@Query("country") country: String): Call<ResponseBody>
+    fun getGeoJson(): Call<ResponseBody>
 }
 

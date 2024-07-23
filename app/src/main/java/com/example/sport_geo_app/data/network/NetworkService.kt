@@ -117,10 +117,9 @@ class NetworkService(private val context: Context) {
     }
 
     fun getGeoJson(
-        country: String,
         callback: (response: ResponseBody?, error: Throwable?) -> Unit
     ) {
-        val call = apiService.getGeoJson(country)
+        val call = apiService.getGeoJson()
         call.enqueue(object : Callback<ResponseBody> {
             override fun onResponse(call: Call<ResponseBody>, response: Response<ResponseBody>) {
                 if (response.isSuccessful) {

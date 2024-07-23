@@ -123,20 +123,11 @@ class MapFragment : Fragment() {
         }
     }
     private fun addClusteredGeoJsonSource(style: Style) {
-        val userCountry = encryptedSharedPreferences.getString("user_country", null)
-        val token = encryptedSharedPreferences.getString("jwtToken", null)
-
-        if (userCountry == null || token == null) {
-            Log.e("MapFragment", "User country or token is null")
-            return
-        }
-
-        networkService.getGeoJson(country = userCountry) { response, error ->
+        networkService.getGeoJson() { response, error ->
             if (error != null) {
                 Log.e("MapFragment", "Network error: ${error.message}")
                 return@getGeoJson
             }
-
             if (response != null) {
                 val geoJsonString = response.string()
                 if (!geoJsonString.isNullOrEmpty()) {
