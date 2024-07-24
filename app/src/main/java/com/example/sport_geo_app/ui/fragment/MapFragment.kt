@@ -273,9 +273,9 @@ class MapFragment : Fragment() {
             )
 
             val placeMarker = Gson().fromJson(values.properties().toString(), PlaceMapMarkerModel::class.java)
-            val name = placeMarker.nameFi
+            val name = placeMarker.name_fi
             val address = placeMarker.katuosoite
-            val type = placeMarker.liikuntapaikkaTyyppi
+            val type = placeMarker.liikuntapaikkatyyppi
 
             viewAnnotation.apply {
                 findViewById<TextView>(R.id.point_name).text = name
@@ -304,7 +304,7 @@ class MapFragment : Fragment() {
 
             val requestBody = JSONObject().apply {
                 put("user_id", userId)
-                put("placeId", properties.placeId)
+                put("place_id", properties.place_id)
             }
 
             networkService.markVisit(

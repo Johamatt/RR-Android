@@ -95,46 +95,31 @@ class VisitsFragment : Fragment() {
 
             val jsonObject = jsonArray.getJSONObject(i)
             val placeObject = jsonObject.getJSONObject("place")
-            Log.d("VisitsFragment",placeObject.getJSONObject("pointCoordinates").toString())
-            val coordinatesArray = placeObject.getJSONObject("pointCoordinates").getJSONArray("coordinates")
+            Log.d("VisitsFragment",placeObject.getJSONObject("point_coordinates").toString())
+            val coordinatesArray = placeObject.getJSONObject("point_coordinates").getJSONArray("coordinates")
 
             val coordinates = CoordinatesPoint(
-                type = placeObject.getJSONObject("pointCoordinates").getString("type"),
+                type = placeObject.getJSONObject("point_coordinates").getString("type"),
                 coordinates = listOf(coordinatesArray.getDouble(0), coordinatesArray.getDouble(1))
             )
 
 
             //TODO requestModels
             val place = PlaceModel(
-                placeId = placeObject.getString("placeId"),
-                nameFi = placeObject.getString("nameFi"),
-                country = placeObject.getString("country"),
+                place_id = placeObject.getString("place_id"),
+                name_fi = placeObject.getString("name_fi"),
                 lisätieto = placeObject.getString("lisätieto"),
-                pointCoordinates = coordinates,
-                liikuntapaikkaTyyppi = placeObject.getString("liikuntapaikkaTyyppi"),
-                liikuntapaikkatyypinAlaryhmä = placeObject.getString("liikuntapaikkatyypinAlaryhmä"),
-                liikuntapaikkatyypinPääryhmä = placeObject.getString("liikuntapaikkatyypinPääryhmä"),
-                postinumero = placeObject.getString("postinumero"),
-                katuosoite = placeObject.getString("katuosoite"),
-                kentänLeveysM = null,
-                kentänPituusM = null,
-                kunta = null,
-                kuntaosa = null,
-                liikuntapintaalaM2 = null,
-                linestringCoordinates = null,
-                maakunta = null,
+                point_coordinates = coordinates,
+                liikuntapaikkatyyppi = placeObject.getString("liikuntapaikkatyyppi"),
+                liikuntapaikkatyypinalaryhmä = placeObject.getString("liikuntapaikkatyypinalaryhmä"),
+                liikuntapaikkatyypinpääryhmä = placeObject.getString("liikuntapaikkatyypinpääryhmä"),
+                linestring_coordinates = null,
                 markkinointinimi = null,
-                muokattuViimeksi = null,
-                omistaja = null,
-                peruskorjausvuodet = null,
-                pintamateriaali = null,
-                pintamateriaaliLisätieto = null,
-                polygonCoordinates = null,
-                postitoimipaikka = null,
+                muokattu_viimeksi = null,
+                polygon_coordinates = null,
                 puhelinnumero = null,
                 sähköposti = null,
                 www = null,
-                aviAlue = null
             )
 
             val visit = Visit(
@@ -171,10 +156,9 @@ class VisitsAdapter(private val visits: List<Visit>) : RecyclerView.Adapter<Visi
 
         holder.visitIdTextView.text = visit.visitId.toString()
         holder.createdAtTextView.text = formatDate(visit.createdAt)
-        holder.nameTextView.text = visit.place.nameFi
-        holder.countryTextView.text = visit.place.country
+        holder.nameTextView.text = visit.place.name_fi
         holder.descriptionTextView.text = visit.place.lisätieto
-        holder.coordinatesTextView.text = visit.place.pointCoordinates.toString()
+        holder.coordinatesTextView.text = visit.place.point_coordinates.toString()
     }
 
     override fun getItemCount(): Int {
@@ -185,7 +169,6 @@ class VisitsAdapter(private val visits: List<Visit>) : RecyclerView.Adapter<Visi
         val visitIdTextView: TextView = itemView.findViewById(R.id.visitIdTextView)
         val createdAtTextView: TextView = itemView.findViewById(R.id.createdAtTextView)
         val nameTextView: TextView = itemView.findViewById(R.id.nameTextView)
-        val countryTextView: TextView = itemView.findViewById(R.id.countryTextView)
         val descriptionTextView: TextView = itemView.findViewById(R.id.descriptionTextView)
         val coordinatesTextView: TextView = itemView.findViewById(R.id.coordinatesTextView)
     }

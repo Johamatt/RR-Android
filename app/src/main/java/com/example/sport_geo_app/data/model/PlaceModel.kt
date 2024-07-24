@@ -1,35 +1,20 @@
 package com.example.sport_geo_app.data.model
 
 data class PlaceModel(
-    val placeId: String,
-    val pointCoordinates: CoordinatesPoint?,
-    val polygonCoordinates: Polygon?,
-    val linestringCoordinates: LineString?,
-    val country: String,
-    val nameFi: String,
-    val liikuntapaikkaTyyppi: String,
-    val liikuntapaikkatyypinAlaryhmä: String,
-    val liikuntapaikkatyypinPääryhmä: String,
-    val katuosoite: String,
-    val postinumero: String,
+    val place_id: String,
+    val point_coordinates: CoordinatesPoint?,
+    val polygon_coordinates: Polygon?,
+    val linestring_coordinates: LineString?,
+    val name_fi: String,
+    val liikuntapaikkatyyppi: String,
+    val liikuntapaikkatyypinalaryhmä: String,
+    val liikuntapaikkatyypinpääryhmä: String,
     val www: String?,
-    val kunta: String?,
-    val kuntaosa: String?,
-    val liikuntapintaalaM2: Double?,
-    val postitoimipaikka: String?,
     val lisätieto: String?,
-    val muokattuViimeksi: String?,
-    val kentänLeveysM: Double?,
-    val kentänPituusM: Double?,
+    val muokattu_viimeksi: String?,
     val puhelinnumero: String?,
-    val pintamateriaaliLisätieto: String?,
     val markkinointinimi: String?,
-    val omistaja: String?,
-    val maakunta: String?,
-    val pintamateriaali: String?,
     val sähköposti: String?,
-    val peruskorjausvuodet: String?,
-    val aviAlue: String?
 )
 
 
@@ -55,8 +40,8 @@ data class LineString(
 )
 
 data class PlaceMapMarkerModel(
-    val placeId: String,
-    val liikuntapaikkaTyyppi: String,
-    val nameFi: String,
+    val place_id: String,
+    val liikuntapaikkatyyppi: String,
+    val name_fi: String,
     val katuosoite: String,
 )
