@@ -6,17 +6,12 @@ import androidx.fragment.app.Fragment
 import com.example.sport_geo_app.ui.fragment.HomeFragment
 import com.example.sport_geo_app.ui.fragment.MapFragment
 import com.google.android.material.bottomnavigation.BottomNavigationView
-import android.content.Intent
 import android.content.SharedPreferences
-import androidx.lifecycle.ViewModelProvider
-import com.example.sport_geo_app.ui.activity.SettingsActivity
 import com.example.sport_geo_app.ui.fragment.VisitsFragment
-import com.example.sport_geo_app.ui.viewmodel.UserViewModel
 import com.example.sport_geo_app.utils.EncryptedPreferencesUtil
 
 
 class MainActivity : AppCompatActivity() {
-    private lateinit var viewModel: UserViewModel
     private lateinit var bottomNavigationView: BottomNavigationView
     private lateinit var encryptedSharedPreferences: SharedPreferences
 
@@ -24,7 +19,6 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        viewModel = ViewModelProvider(this)[UserViewModel::class.java]
         bottomNavigationView = findViewById(R.id.bottom_navigation)
         encryptedSharedPreferences = EncryptedPreferencesUtil.getEncryptedSharedPreferences(this)
 
@@ -48,13 +42,9 @@ class MainActivity : AppCompatActivity() {
         }
 
         if (savedInstanceState == null) {
-            // Check if country is defined in EncryptedSharedPreferences
-            val userCountry = encryptedSharedPreferences.getString("user_country", null)
-            if (userCountry.isNullOrEmpty()) {
-                navigateToCountrySelection()
-            } else {
+
                 bottomNavigationView.selectedItemId = R.id.bottom_home
-            }
+
         }
     }
 
@@ -81,9 +71,4 @@ class MainActivity : AppCompatActivity() {
         transaction.commit()
     }
 
-    private fun navigateToCountrySelection() {
-        val intent = Intent(this, SettingsActivity::class.java)
-        startActivity(intent)
-        finish()
-    }
 }

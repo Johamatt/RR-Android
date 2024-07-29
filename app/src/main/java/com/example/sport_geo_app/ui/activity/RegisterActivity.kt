@@ -1,16 +1,14 @@
 package com.example.sport_geo_app.ui.activity
 
-import AuthService
+import com.example.sport_geo_app.data.network.AuthService
 import android.content.Intent
 import android.content.SharedPreferences
 import android.os.Bundle
 import android.widget.Button
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import androidx.lifecycle.ViewModelProvider
 import com.example.sport_geo_app.MainActivity
 import com.example.sport_geo_app.R
-import com.example.sport_geo_app.ui.viewmodel.UserViewModel
 import com.example.sport_geo_app.utils.EncryptedPreferencesUtil
 import com.google.android.material.textfield.TextInputEditText
 import org.json.JSONException
@@ -18,8 +16,6 @@ import org.json.JSONObject
 
 
 class RegisterActivity : AppCompatActivity() {
-
-    private lateinit var viewModel: UserViewModel
     private lateinit var emailInput: TextInputEditText
     private lateinit var passwordInput: TextInputEditText
     private lateinit var registerBtn: Button
@@ -30,7 +26,6 @@ class RegisterActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_register)
         authService = AuthService(this)
-        viewModel = ViewModelProvider(this)[UserViewModel::class.java]
         encryptedSharedPreferences = EncryptedPreferencesUtil.getEncryptedSharedPreferences(this)
 
         initializeViews()
@@ -77,7 +72,6 @@ class RegisterActivity : AppCompatActivity() {
         with(encryptedSharedPreferences.edit()) {
             putInt("user_id", userId)
             putString("user_email", userEmail)
-            putString("user_country", null)
             putString("jwtToken", jwtToken)
             apply()
         }

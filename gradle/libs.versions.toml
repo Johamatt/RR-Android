@@ -1,17 +1,27 @@
 [versions]
 agp = "8.3.2"
 kotlin = "1.9.0"
-coreKtx = "1.13.0"
+coreKtx = "1.13.1"
 junit = "4.13.2"
-junitVersion = "1.1.5"
-espressoCore = "3.5.1"
-lifecycleRuntimeKtx = "2.7.0"
-activityCompose = "1.9.0"
-composeBom = "2024.04.01"
-appcompatResources = "1.6.1"
+junitVersion = "1.2.1"
+espressoCore = "3.6.1"
+lifecycleRuntimeKtx = "2.8.4"
+activityCompose = "1.9.1"
+composeBom = "2024.06.00"
+appcompatResources = "1.7.0"
 constraintlayout = "2.1.4"
-material = "1.11.0"
-playServicesLocation = "21.2.0"
+material = "1.12.0"
+playServicesLocation = "21.3.0"
+fragmentKtx = "1.8.2"
+activityKtx = "1.9.1"
+securityCryptoKtx = "1.1.0-alpha06"
+lottie = "6.4.0"
+mapboxMaps = "11.2.0"
+retrofit = "2.9.0"
+converterGson = "2.9.0"
+volley = "1.2.1"
+playServicesAuth = "21.2.0"
+playServicesAds = "23.2.0"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -32,6 +42,16 @@ androidx-appcompat-resources = { group = "androidx.appcompat", name = "appcompat
 androidx-constraintlayout = { group = "androidx.constraintlayout", name = "constraintlayout", version.ref = "constraintlayout" }
 material = { group = "com.google.android.material", name = "material", version.ref = "material" }
 play-services-location = { group = "com.google.android.gms", name = "play-services-location", version.ref = "playServicesLocation" }
+fragment-ktx = { group = "androidx.fragment", name = "fragment-ktx", version.ref = "fragmentKtx" }
+activity-ktx = { group = "androidx.activity", name = "activity-ktx", version.ref = "activityKtx" }
+security-crypto-ktx = { group = "androidx.security", name = "security-crypto-ktx", version.ref = "securityCryptoKtx" }
+lottie = { group = "com.airbnb.android", name = "lottie", version.ref = "lottie" }
+mapbox-maps = { group = "com.mapbox.maps", name = "android", version.ref = "mapboxMaps" }
+retrofit = { group = "com.squareup.retrofit2", name = "retrofit", version.ref = "retrofit" }
+converter-gson = { group = "com.squareup.retrofit2", name = "converter-gson", version.ref = "converterGson" }
+volley = { group = "com.android.volley", name = "volley", version.ref = "volley" }
+play-services-auth = { group = "com.google.android.gms", name = "play-services-auth", version.ref = "playServicesAuth" }
+play-services-ads = { group = "com.google.android.gms", name = "play-services-ads", version.ref = "playServicesAds" }
 
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }

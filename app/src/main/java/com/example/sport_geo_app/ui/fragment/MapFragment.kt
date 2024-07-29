@@ -2,7 +2,6 @@ package com.example.sport_geo_app.ui.fragment
 
 import android.content.SharedPreferences
 import android.graphics.Color
-import android.os.AsyncTask
 import android.os.Bundle
 import android.util.Log
 import android.view.Gravity
@@ -16,7 +15,6 @@ import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.ViewModelProvider
 import com.example.sport_geo_app.utils.LocationListener
 import com.example.sport_geo_app.utils.BitmapUtils
 import com.mapbox.geojson.Point
@@ -42,25 +40,18 @@ import com.mapbox.maps.plugin.gestures.addOnMapClickListener
 import com.mapbox.maps.viewannotation.ViewAnnotationManager
 import com.mapbox.maps.viewannotation.geometry
 import com.mapbox.maps.viewannotation.viewAnnotationOptions
-import java.lang.ref.WeakReference
 import com.example.sport_geo_app.R
 import com.example.sport_geo_app.data.model.PlaceMapMarkerModel
 import com.example.sport_geo_app.data.network.NetworkService
-import com.example.sport_geo_app.ui.viewmodel.UserViewModel
 import com.example.sport_geo_app.utils.EncryptedPreferencesUtil
 import com.google.gson.Gson
 import com.mapbox.geojson.Feature
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
-import okhttp3.OkHttpClient
-import okhttp3.Request
 import org.json.JSONException
 import org.json.JSONObject
-import java.io.IOException
 import android.Manifest
 import androidx.lifecycle.lifecycleScope
-import kotlinx.coroutines.withContext
 
 
 class MapFragment : Fragment() {
@@ -123,33 +114,35 @@ class MapFragment : Fragment() {
         }
     }
     private fun addClusteredGeoJsonSource(style: Style) {
-        networkService.getGeoJson() { response, error ->
+        networkService.getGeoJson { response, error ->
             if (error != null) {
                 Log.e("MapFragment", "Network error: ${error.message}")
                 return@getGeoJson
             }
-            if (response != null) {
-                val geoJsonString = response.string()
-                if (!geoJsonString.isNullOrEmpty()) {
-                    lifecycleScope.launch(Dispatchers.Main) {
-                        style.addSource(
-                            geoJsonSource(GEOJSON_SOURCE_ID) {
-                                data(geoJsonString)
-                                cluster(true)
-                                maxzoom(14)
-                                clusterRadius(50)
-                            }
-                        )
-                        addMapLayers(style)
-                    }
-                } else {
-                    Log.e("MapFragment", "GeoJSON data is null or empty")
+
+            val geoJsonString = response?.string() ?: run {
+                Log.e("MapFragment", "GeoJSON data is null or empty")
+                return@getGeoJson
+            }
+
+            if (geoJsonString.isNotEmpty()) {
+                lifecycleScope.launch(Dispatchers.Main) {
+                    style.addSource(
+                        geoJsonSource(GEOJSON_SOURCE_ID) {
+                            data(geoJsonString)
+                            cluster(true)
+                            maxzoom(14)
+                            clusterRadius(50)
+                        }
+                    )
+                    addMapLayers(style)
                 }
             } else {
-                Log.e("MapFragment", "No response received")
+                Log.e("MapFragment", "GeoJSON data is empty")
             }
         }
     }
+
 
     private fun addMapLayers(style: Style) {
         style.addLayer(
@@ -297,15 +290,14 @@ class MapFragment : Fragment() {
     }
 
     private fun markVisitButtonClick(values: Feature) {
-        val currentLocation = locationListener.getCurrentLocation()
-        if (currentLocation != null) {
-            val properties = Gson().fromJson(values.properties().toString(), PlaceMapMarkerModel::class.java)
-            val userId = encryptedSharedPreferences.getInt("user_id", -1)
+        val properties =
+            Gson().fromJson(values.properties().toString(), PlaceMapMarkerModel::class.java)
+        val userId = encryptedSharedPreferences.getInt("user_id", -1)
 
-            val requestBody = JSONObject().apply {
-                put("user_id", userId)
-                put("place_id", properties.place_id)
-            }
+        val requestBody = JSONObject().apply {
+            put("user_id", userId)
+            put("place_id", properties.place_id)
+        }
 
             networkService.markVisit(
                 requestBody,
@@ -323,9 +315,6 @@ class MapFragment : Fragment() {
                     }
                 }
             )
-        } else {
-            showCustomToast("Unable to get current location")
-        }
     }
 
 

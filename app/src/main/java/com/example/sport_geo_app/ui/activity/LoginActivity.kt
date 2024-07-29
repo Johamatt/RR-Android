@@ -1,5 +1,5 @@
 package com.example.sport_geo_app.ui.activity
-import AuthService
+import com.example.sport_geo_app.data.network.AuthService
 import android.app.Activity
 import android.content.Intent
 import android.content.SharedPreferences
@@ -11,7 +11,6 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
-import com.airbnb.lottie.LottieAnimationView
 import com.example.sport_geo_app.MainActivity
 import com.example.sport_geo_app.R
 import com.example.sport_geo_app.utils.EncryptedPreferencesUtil
@@ -139,8 +138,7 @@ class LoginActivity : AppCompatActivity() {
                 val jwtToken = jsonObject.getString("jwtToken")
                 val userId = userJson.getInt("user_id")
                 val userEmail = userJson.getString("email")
-                val userCountry = userJson.optString("country", null)
-                saveUserData(userId, jwtToken, userEmail, userCountry)
+                saveUserData(userId, jwtToken, userEmail)
                 navigateToMainActivity()
             } catch (e: Exception) {
                 runOnUiThread {
@@ -168,11 +166,10 @@ class LoginActivity : AppCompatActivity() {
         }
     }
 
-    private fun saveUserData(userId: Int, jwtToken: String, userEmail: String, userCountry: String?) {
+    private fun saveUserData(userId: Int, jwtToken: String, userEmail: String) {
         with(encryptedSharedPreferences.edit()) {
             putInt("user_id", userId)
             putString("user_email", userEmail)
-            putString("user_country", userCountry)
             putString("jwtToken", jwtToken)
             apply()
         }

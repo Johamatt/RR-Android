@@ -11,7 +11,6 @@ import android.widget.Button
 import android.widget.TextView
 import android.widget.Toast
 import androidx.fragment.app.Fragment
-import com.airbnb.lottie.LottieAnimationView
 import com.example.sport_geo_app.R
 import com.example.sport_geo_app.ui.activity.LoginActivity
 import com.example.sport_geo_app.utils.AdManager

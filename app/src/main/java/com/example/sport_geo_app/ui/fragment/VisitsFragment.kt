@@ -17,14 +17,10 @@ import com.example.sport_geo_app.data.model.PlaceModel
 import com.example.sport_geo_app.data.model.Visit
 import com.example.sport_geo_app.data.network.NetworkService
 import com.example.sport_geo_app.utils.EncryptedPreferencesUtil
-
-
 import java.text.SimpleDateFormat
 import java.util.*
-
 import okhttp3.ResponseBody
 import org.json.JSONArray
-import org.json.JSONObject
 import java.text.ParseException
 
 
@@ -77,7 +73,7 @@ class VisitsFragment : Fragment() {
         textView.text = message ?: "An unknown error occurred"
         with(Toast(requireContext())) {
             duration = Toast.LENGTH_LONG
-            setView(layout)
+            view = layout
             setGravity(Gravity.CENTER, 0, 0)
             show()
         }
@@ -176,15 +172,17 @@ class VisitsAdapter(private val visits: List<Visit>) : RecyclerView.Adapter<Visi
     private fun formatDate(dateString: String): String {
         val inputFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.getDefault())
         val outputFormat = SimpleDateFormat("MMM dd, yyyy", Locale.getDefault())
-
+        var formattedDate: String
         try {
             val date = inputFormat.parse(dateString)
-            return outputFormat.format(date)
+            formattedDate = if (date != null) outputFormat.format(date) else ""
         } catch (e: ParseException) {
             e.printStackTrace()
-            return ""
+            formattedDate = ""
         }
+        return formattedDate
     }
+
 }
 
 

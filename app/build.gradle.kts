@@ -59,20 +59,17 @@ android {
 
 dependencies {
 
-    implementation("androidx.fragment:fragment-ktx:1.8.1")
-    implementation("androidx.activity:activity-ktx:1.9.0")
-
-    implementation ("androidx.security:security-crypto:1.1.0-alpha03")
-
-    implementation("com.airbnb.android:lottie:6.4.0")
-    implementation("com.mapbox.maps:android:11.2.0")
-    implementation ("com.squareup.retrofit2:retrofit:2.9.0")
-    implementation ("com.squareup.retrofit2:converter-gson:2.9.0")
-    implementation ("com.google.android.gms:play-services-location:21.0.1")
-    implementation ("com.android.volley:volley:1.2.1")
-    implementation ("com.google.android.gms:play-services-auth:20.4.0")
-    implementation ("com.google.android.material:material:1.9.0")
-    implementation("com.google.android.gms:play-services-ads:23.2.0")
+    implementation(libs.fragment.ktx)
+    implementation(libs.activity.ktx)
+    implementation(libs.security.crypto.ktx)
+    implementation(libs.lottie)
+    implementation(libs.mapbox.maps)
+    implementation(libs.retrofit)
+    implementation(libs.converter.gson)
+    implementation(libs.play.services.location)
+    implementation(libs.volley)
+    implementation (libs.play.services.auth)
+    implementation(libs.play.services.ads)
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
