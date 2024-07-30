@@ -7,7 +7,7 @@ import com.example.sport_geo_app.ui.fragment.HomeFragment
 import com.example.sport_geo_app.ui.fragment.MapFragment
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import android.content.SharedPreferences
-import com.example.sport_geo_app.ui.fragment.VisitsFragment
+import com.example.sport_geo_app.ui.fragment.WorkoutsFragment
 import com.example.sport_geo_app.utils.EncryptedPreferencesUtil
 
 
@@ -33,8 +33,8 @@ class MainActivity : AppCompatActivity() {
                     true
                 }
 
-                R.id.bottom_visits -> {
-                    openFragment(VisitsFragment())
+                R.id.bottom_workouts -> {
+                    openFragment(WorkoutsFragment())
                     true
                 }
                 else -> false

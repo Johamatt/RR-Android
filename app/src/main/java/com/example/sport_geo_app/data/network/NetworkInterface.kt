@@ -10,12 +10,12 @@ import retrofit2.http.POST
 import retrofit2.http.Query
 
 interface NetworkInterface {
-    @POST("visits")
+    @POST("workouts")
     @Headers("Content-Type: application/json")
-    fun markVisit(@Body requestBody: RequestBody): Call<ResponseBody>
-    @GET("visits")
+    fun markWorkout(@Body requestBody: RequestBody): Call<ResponseBody>
+    @GET("workouts")
     @Headers("Content-Type: application/json")
-    fun getVisits(@Query("user_id") userId: Int): Call<ResponseBody>
+    fun getWorkouts(@Query("user_id") userId: Int): Call<ResponseBody>
     @GET("places/GeoJsonPoints")
     @Headers("Content-Type: application/json")
     fun getGeoJson(): Call<ResponseBody>

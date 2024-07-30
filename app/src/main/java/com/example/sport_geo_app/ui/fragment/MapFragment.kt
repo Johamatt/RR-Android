@@ -274,8 +274,8 @@ class MapFragment : Fragment() {
                 findViewById<TextView>(R.id.point_name).text = name
                 findViewById<TextView>(R.id.point_address).text = address
                 findViewById<TextView>(R.id.point_type).text = type
-                findViewById<Button>(R.id.mark_visited_button).setOnClickListener {
-                    markVisitButtonClick(values)
+                findViewById<Button>(R.id.mark_workout_button).setOnClickListener {
+                    markWorkoutButtonClick(values)
                 }
                 findViewById<Button>(R.id.info_button).setOnClickListener {
                     handleInfoButtonClick(name, address, type)
@@ -289,7 +289,7 @@ class MapFragment : Fragment() {
         infoFragment.show(parentFragmentManager, "infoFragment")
     }
 
-    private fun markVisitButtonClick(values: Feature) {
+    private fun markWorkoutButtonClick(values: Feature) {
         val properties =
             Gson().fromJson(values.properties().toString(), PlaceMapMarkerModel::class.java)
         val userId = encryptedSharedPreferences.getInt("user_id", -1)
@@ -299,7 +299,7 @@ class MapFragment : Fragment() {
             put("place_id", properties.place_id)
         }
 
-            networkService.markVisit(
+            networkService.markWorkout(
                 requestBody,
                 callback = { _, error ->
                     if (error != null) {
@@ -311,7 +311,7 @@ class MapFragment : Fragment() {
                             showCustomToast("Error parsing err response")
                         }
                     } else {
-                        showCustomToast("Place added to visits")
+                        showCustomToast("added to workouts")
                     }
                 }
             )

@@ -14,7 +14,7 @@ import android.widget.Toast
 import com.example.sport_geo_app.R
 import com.example.sport_geo_app.data.model.CoordinatesPoint
 import com.example.sport_geo_app.data.model.PlaceModel
-import com.example.sport_geo_app.data.model.Visit
+import com.example.sport_geo_app.data.model.Workout
 import com.example.sport_geo_app.data.network.NetworkService
 import com.example.sport_geo_app.utils.EncryptedPreferencesUtil
 import java.text.SimpleDateFormat
@@ -24,10 +24,10 @@ import org.json.JSONArray
 import java.text.ParseException
 
 
-class VisitsFragment : Fragment() {
+class WorkoutsFragment : Fragment() {
 
     private lateinit var recyclerView: RecyclerView
-    private lateinit var visitsAdapter: VisitsAdapter
+    private lateinit var workoutsAdapter: WorkoutsAdapter
     private lateinit var encryptedSharedPreferences: SharedPreferences
     private lateinit var networkService: NetworkService
     override fun onCreateView(
@@ -35,7 +35,7 @@ class VisitsFragment : Fragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        val view = inflater.inflate(R.layout.fragment_visits, container, false)
+        val view = inflater.inflate(R.layout.fragment_workouts, container, false)
 
         encryptedSharedPreferences = EncryptedPreferencesUtil.getEncryptedSharedPreferences(requireContext())
         networkService = NetworkService(requireContext())
@@ -43,7 +43,7 @@ class VisitsFragment : Fragment() {
 
         val userId = encryptedSharedPreferences.getInt("user_id", -1)
         if (userId != -1) {
-            fetchVisitsData(userId, view)
+            fetchWorkoutsData(userId, view)
         } else {
             showCustomToast("Unknown error occurred")
         }
@@ -51,14 +51,14 @@ class VisitsFragment : Fragment() {
         return view
     }
 
-    private fun fetchVisitsData(userId: Int, view: View) {
+    private fun fetchWorkoutsData(userId: Int, view: View) {
         val networkService = NetworkService(requireContext())
-        networkService.getVisits(userId) { response, error ->
+        networkService.getWorkouts(userId) { response, error ->
             when {
                 error != null -> showCustomToast(error.message)
                 response != null -> {
-                    val visitsData = parseVisitsResponse(response)
-                    initializeRecyclerView(view, visitsData)
+                    val workoutsData = parseWorkoutsResponse(response)
+                    initializeRecyclerView(view, workoutsData)
                 }
                 else -> showCustomToast("Unknown error occurred")
             }
@@ -81,17 +81,17 @@ class VisitsFragment : Fragment() {
 
 
 
-    private fun parseVisitsResponse(responseBody: ResponseBody): List<Visit> {
-        val visits = mutableListOf<Visit>()
+    private fun parseWorkoutsResponse(responseBody: ResponseBody): List<Workout> {
+        val workouts = mutableListOf<Workout>()
         val jsonArray = JSONArray(responseBody.string())
 
 
         for (i in 0 until jsonArray.length()) {
-            Log.d("VisitsFragment", jsonArray.toString(i))
+            Log.d("WorkoutsFragment", jsonArray.toString(i))
 
             val jsonObject = jsonArray.getJSONObject(i)
             val placeObject = jsonObject.getJSONObject("place")
-            Log.d("VisitsFragment",placeObject.getJSONObject("point_coordinates").toString())
+            Log.d("WorkoutsFragment",placeObject.getJSONObject("point_coordinates").toString())
             val coordinatesArray = placeObject.getJSONObject("point_coordinates").getJSONArray("coordinates")
 
             val coordinates = CoordinatesPoint(
@@ -118,51 +118,51 @@ class VisitsFragment : Fragment() {
                 www = null,
             )
 
-            val visit = Visit(
-                visitId = jsonObject.getInt("visit_id"),
+            val workout = Workout(
+                workout_id = jsonObject.getInt("workout_id"),
                 createdAt = jsonObject.getString("created_at"),
                 place = place
             )
 
-            visits.add(visit)
+            workouts.add(workout)
         }
 
-        return visits
+        return workouts
     }
 
-    private fun initializeRecyclerView(view: View, visitsData: List<Visit>) {
+    private fun initializeRecyclerView(view: View, workoutsData: List<Workout>) {
         recyclerView = view.findViewById(R.id.recyclerView)
         recyclerView.layoutManager = LinearLayoutManager(activity)
-        visitsAdapter = VisitsAdapter(visitsData)
-        recyclerView.adapter = visitsAdapter
+        workoutsAdapter = WorkoutsAdapter(workoutsData)
+        recyclerView.adapter = workoutsAdapter
     }
 }
 
 
 
-class VisitsAdapter(private val visits: List<Visit>) : RecyclerView.Adapter<VisitsAdapter.VisitViewHolder>() {
+class WorkoutsAdapter(private val workouts: List<Workout>) : RecyclerView.Adapter<WorkoutsAdapter.WorkoutViewHolder>() {
 
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): VisitViewHolder {
-        val view = LayoutInflater.from(parent.context).inflate(R.layout.item_visit, parent, false)
-        return VisitViewHolder(view)
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): WorkoutViewHolder {
+        val view = LayoutInflater.from(parent.context).inflate(R.layout.item_workout, parent, false)
+        return WorkoutViewHolder(view)
     }
 
-    override fun onBindViewHolder(holder: VisitViewHolder, position: Int) {
-        val visit = visits[position]
+    override fun onBindViewHolder(holder: WorkoutViewHolder, position: Int) {
+        val workout = workouts[position]
 
-        holder.visitIdTextView.text = visit.visitId.toString()
-        holder.createdAtTextView.text = formatDate(visit.createdAt)
-        holder.nameTextView.text = visit.place.name_fi
-        holder.descriptionTextView.text = visit.place.lisätieto
-        holder.coordinatesTextView.text = visit.place.point_coordinates.toString()
+        holder.workoutIdTextView.text = workout.workout_id.toString()
+        holder.createdAtTextView.text = formatDate(workout.createdAt)
+        holder.nameTextView.text = workout.place.name_fi
+        holder.descriptionTextView.text = workout.place.lisätieto
+        holder.coordinatesTextView.text = workout.place.point_coordinates.toString()
     }
 
     override fun getItemCount(): Int {
-        return visits.size
+        return workouts.size
     }
 
-    inner class VisitViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-        val visitIdTextView: TextView = itemView.findViewById(R.id.visitIdTextView)
+    inner class WorkoutViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+        val workoutIdTextView: TextView = itemView.findViewById(R.id.workoutIdTextView)
         val createdAtTextView: TextView = itemView.findViewById(R.id.createdAtTextView)
         val nameTextView: TextView = itemView.findViewById(R.id.nameTextView)
         val descriptionTextView: TextView = itemView.findViewById(R.id.descriptionTextView)

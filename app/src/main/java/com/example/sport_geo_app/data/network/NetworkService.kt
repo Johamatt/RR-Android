@@ -38,13 +38,13 @@ class NetworkService(context: Context) {
 
     private val apiService: NetworkInterface = retrofit.create(NetworkInterface::class.java)
 
-    fun markVisit(
+    fun markWorkout(
         requestBody: JSONObject,
         callback: (response: ResponseBody?, error: Throwable?) -> Unit
     ) {
         val body = requestBody.toString()
             .toRequestBody("application/json; charset=utf-8".toMediaTypeOrNull())
-        val call = apiService.markVisit(body)
+        val call = apiService.markWorkout(body)
 
         call.enqueue(object : Callback<ResponseBody> {
             override fun onResponse(call: Call<ResponseBody>, response: Response<ResponseBody>) {
@@ -64,11 +64,11 @@ class NetworkService(context: Context) {
         })
     }
 
-    fun getVisits(
+    fun getWorkouts(
         userId: Int,
         callback: (response: ResponseBody?, error: Throwable?) -> Unit
     ) {
-        val call = apiService.getVisits(userId)
+        val call = apiService.getWorkouts(userId)
 
         call.enqueue(object : Callback<ResponseBody> {
             override fun onResponse(call: Call<ResponseBody>, response: Response<ResponseBody>) {

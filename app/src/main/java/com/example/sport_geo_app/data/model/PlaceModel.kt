@@ -18,8 +18,8 @@ data class PlaceModel(
 )
 
 
-data class Visit(
-    val visitId: Int,
+data class Workout(
+    val workout_id: Int,
     val createdAt: String,
     val place: PlaceModel
 )
