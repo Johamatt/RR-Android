@@ -22,5 +22,14 @@ object EncryptedPreferencesUtil {
             EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
         )
     }
+
+    fun clearEncryptedPreferences(context: Context) {
+        val sharedPreferences = getEncryptedSharedPreferences(context)
+        val editor = sharedPreferences.edit()
+        editor.clear()
+        editor.apply()
+    }
+
+
 }
 

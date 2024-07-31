@@ -72,11 +72,7 @@ class HomeFragment : Fragment() {
     private fun signOut() {
         gsc.signOut().addOnCompleteListener(requireActivity()) { task ->
             if (task.isSuccessful) {
-                val sharedPreferences = requireContext().getSharedPreferences("encrypted_user_prefs", Context.MODE_PRIVATE)
-                with(sharedPreferences.edit()) {
-                    clear()
-                    apply()
-                }
+                EncryptedPreferencesUtil.clearEncryptedPreferences(requireContext())
                 activity?.finish()
                 startActivity(Intent(activity, LoginActivity::class.java))
             } else {

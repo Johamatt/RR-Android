@@ -48,8 +48,6 @@ import com.google.gson.Gson
 import com.mapbox.geojson.Feature
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import org.json.JSONException
-import org.json.JSONObject
 import android.Manifest
 import androidx.lifecycle.lifecycleScope
 
@@ -292,29 +290,16 @@ class MapFragment : Fragment() {
     private fun markWorkoutButtonClick(values: Feature) {
         val properties =
             Gson().fromJson(values.properties().toString(), PlaceMapMarkerModel::class.java)
-        val userId = encryptedSharedPreferences.getInt("user_id", -1)
+        val user_id = encryptedSharedPreferences.getInt("user_id", -1)
 
-        val requestBody = JSONObject().apply {
-            put("user_id", userId)
-            put("place_id", properties.place_id)
-        }
-
-            networkService.markWorkout(
-                requestBody,
-                callback = { _, error ->
-                    if (error != null) {
-                        try {
-                            val errorJson = JSONObject(error.message)
-                            val errorMessage = errorJson.getString("message")
-                            showCustomToast(errorMessage)
-                        } catch (e: JSONException) {
-                            showCustomToast("Error parsing err response")
-                        }
-                    } else {
-                        showCustomToast("added to workouts")
-                    }
-                }
-            )
+        val createWorkoutFragment = CreateWorkoutFragment.newInstance(
+            properties.name_fi,
+            properties.katuosoite,
+            properties.liikuntapaikkatyyppi,
+            properties.place_id,
+            user_id
+        )
+        createWorkoutFragment.show(parentFragmentManager, "createWorkoutFragment")
     }
 
 

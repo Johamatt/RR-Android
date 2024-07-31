@@ -4,6 +4,7 @@ import android.app.Activity
 import android.content.Intent
 import android.content.SharedPreferences
 import android.os.Bundle
+import android.util.Log
 import android.widget.Button
 import android.widget.EditText
 import android.widget.ImageView
@@ -33,26 +34,60 @@ class LoginActivity : AppCompatActivity() {
     private lateinit var authService: AuthService
     private lateinit var encryptedSharedPreferences: SharedPreferences
 
+    private var TAG = "LoginActivity"
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_login)
 
-        initializeViews()
-        setupGoogleSignIn()
-        setupListeners()
-
         authService = AuthService(this)
         encryptedSharedPreferences = EncryptedPreferencesUtil.getEncryptedSharedPreferences(this)
 
-        checkAndHandleGoogleSignIn()
+        checkAndHandleGoogleSignIn { isGoogleSignInSuccessful ->
+            if (!isGoogleSignInSuccessful && isLoggedIn()) {
+                navigateToMainActivity()
+            } else {
+                initializeViews()
+                setupGoogleSignIn()
+                setupListeners()
+            }
+        }
+    }
 
-        if (isLoggedIn()) {
-            navigateToMainActivity()
+    private fun checkAndHandleGoogleSignIn(callback: (Boolean) -> Unit) {
+        val acct = GoogleSignIn.getLastSignedInAccount(this)
+        if (acct != null) {
+            val idToken = acct.idToken
+            if (idToken != null) {
+                loginWithGoogle(idToken, callback)
+            } else {
+                callback(false)
+            }
+        } else {
+            callback(false)
+        }
+    }
+
+    private fun loginWithGoogle(idToken: String, callback: (Boolean) -> Unit) {
+        authService.loginWithGoogle(idToken) { response, error ->
+            runOnUiThread {
+                if (error != null) {
+                    EncryptedPreferencesUtil.clearEncryptedPreferences(this)
+                    handleErrorResponse(error)
+                    callback(false)
+                } else if (response != null) {
+                    handleSuccessResponse(response.string())
+                    callback(true)
+                } else {
+                    displayErrorMessage("Authentication failed")
+                    callback(false)
+                }
+            }
         }
     }
 
     private fun isLoggedIn(): Boolean {
+        Log.d(TAG, encryptedSharedPreferences.all.toString())
         return encryptedSharedPreferences.contains("user_id")
     }
 
@@ -74,7 +109,7 @@ class LoginActivity : AppCompatActivity() {
     }
 
     private fun setupListeners() {
-        googleBtn.setOnClickListener { signIn() }
+        googleBtn.setOnClickListener { signInWithGoogle() }
         registerText.setOnClickListener { startActivity(Intent(this, RegisterActivity::class.java)) }
         emailLoginBtn.setOnClickListener {
             val email = emailInput.text.toString()
@@ -87,33 +122,9 @@ class LoginActivity : AppCompatActivity() {
         }
     }
 
-    private fun checkAndHandleGoogleSignIn() {
-        val acct = GoogleSignIn.getLastSignedInAccount(this)
-        if (acct != null) {
-            val idToken = acct.idToken
-            loginWithGoogle(idToken)
-        }
-    }
-
-    private fun signIn() {
+    private fun signInWithGoogle() {
         val signInIntent = gsc.signInIntent
         signInLauncher.launch(signInIntent)
-    }
-
-    private fun loginWithGoogle(idToken: String?) {
-        if (idToken != null) {
-            authService.loginWithGoogle(idToken) { response, error ->
-                runOnUiThread {
-                    if (error != null) {
-                        handleErrorResponse(error)
-                    } else if (response != null) {
-                        handleSuccessResponse(response.string())
-                    } else {
-                        displayErrorMessage("Authentication failed")
-                    }
-                }
-            }
-        }
     }
 
     private fun loginWithEmail(email: String, password: String) {
@@ -130,28 +141,24 @@ class LoginActivity : AppCompatActivity() {
         }
     }
 
-    private fun handleSuccessResponse(responseBody: String?) {
-        responseBody?.let {
-            try {
-                val jsonObject = JSONObject(responseBody)
-                val userJson = jsonObject.getJSONObject("user")
-                val jwtToken = jsonObject.getString("jwtToken")
-                val userId = userJson.getInt("user_id")
-                val userEmail = userJson.getString("email")
-                saveUserData(userId, jwtToken, userEmail)
-                navigateToMainActivity()
-            } catch (e: Exception) {
-                runOnUiThread {
-                    displayErrorMessage("Failed to parse user info")
-                }
-                e.printStackTrace()
-            }
+    private fun handleSuccessResponse(responseBody: String) {
+        Log.d(TAG, responseBody)
+        try {
+            val jsonObject = JSONObject(responseBody)
+            val userJson = jsonObject.getJSONObject("user")
+            val jwtToken = jsonObject.getString("jwtToken")
+            val userId = userJson.getInt("user_id")
+            val userEmail = userJson.getString("email")
+            saveUserData(userId, jwtToken, userEmail)
+            navigateToMainActivity()
+        } catch (e: Exception) {
+            displayErrorMessage("Failed to parse user info")
+            e.printStackTrace()
         }
     }
 
     private fun handleErrorResponse(error: Throwable?) {
-        val errorMessage = error?.message
-        val messageToShow = errorMessage?.let { message ->
+        val errorMessage = error?.message?.let { message ->
             try {
                 val jsonObject = JSONObject(message)
                 jsonObject.getString("message")
@@ -161,9 +168,7 @@ class LoginActivity : AppCompatActivity() {
             }
         } ?: "Unknown error occurred: ${error?.javaClass?.simpleName ?: "Unknown"}"
 
-        runOnUiThread {
-            displayErrorMessage(messageToShow)
-        }
+        displayErrorMessage(errorMessage)
     }
 
     private fun saveUserData(userId: Int, jwtToken: String, userEmail: String) {
@@ -182,9 +187,15 @@ class LoginActivity : AppCompatActivity() {
             try {
                 val account = task.getResult(ApiException::class.java)
                 val idToken = account?.idToken
-                loginWithGoogle(idToken)
+                if (idToken != null) {
+                    loginWithGoogle(idToken) { success ->
+                        if (success) {
+                            navigateToMainActivity()
+                        }
+                    }
+                }
             } catch (e: ApiException) {
-                displayErrorMessage("Something went wrong")
+                displayErrorMessage("Google Sign-In failed")
                 e.printStackTrace()
             }
         }
@@ -195,8 +206,8 @@ class LoginActivity : AppCompatActivity() {
     }
 
     private fun navigateToMainActivity() {
-        val intent = Intent(this, MainActivity::class.java)
-        startActivity(intent)
+        startActivity(Intent(this, MainActivity::class.java))
         finish()
     }
 }
+
