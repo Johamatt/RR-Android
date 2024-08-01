@@ -9,6 +9,9 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.example.sport_geo_app.MainActivity
 import com.example.sport_geo_app.R
+import com.example.sport_geo_app.utils.Constants.JWT_TOKEN_KEY
+import com.example.sport_geo_app.utils.Constants.USER_EMAIL_KEY
+import com.example.sport_geo_app.utils.Constants.USER_ID_KEY
 import com.example.sport_geo_app.utils.EncryptedPreferencesUtil
 import com.google.android.material.textfield.TextInputEditText
 import org.json.JSONException
@@ -70,9 +73,9 @@ class RegisterActivity : AppCompatActivity() {
     }
     private fun saveUserData(userId: Int, jwtToken: String, userEmail: String) {
         with(encryptedSharedPreferences.edit()) {
-            putInt("user_id", userId)
-            putString("user_email", userEmail)
-            putString("jwtToken", jwtToken)
+            putInt(USER_ID_KEY, userId)
+            putString(USER_EMAIL_KEY, userEmail)
+            putString(JWT_TOKEN_KEY, jwtToken)
             apply()
         }
     }

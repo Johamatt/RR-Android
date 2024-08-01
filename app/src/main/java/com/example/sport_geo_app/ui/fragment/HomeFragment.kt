@@ -14,6 +14,8 @@ import androidx.fragment.app.Fragment
 import com.example.sport_geo_app.R
 import com.example.sport_geo_app.ui.activity.LoginActivity
 import com.example.sport_geo_app.utils.AdManager
+import com.example.sport_geo_app.utils.Constants.USER_EMAIL_KEY
+import com.example.sport_geo_app.utils.Constants.USER_ID_KEY
 import com.example.sport_geo_app.utils.EncryptedPreferencesUtil
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInClient
@@ -51,8 +53,8 @@ class HomeFragment : Fragment() {
 
         encryptedSharedPreferences = EncryptedPreferencesUtil.getEncryptedSharedPreferences(requireContext())
 
-        val userId = encryptedSharedPreferences.getInt("user_id", -1)
-        val userEmail = encryptedSharedPreferences.getString("user_email", "")
+        val userId = encryptedSharedPreferences.getInt(USER_ID_KEY, -1)
+        val userEmail = encryptedSharedPreferences.getString(USER_EMAIL_KEY, "")
 
         view.findViewById<TextView>(R.id.user_id_text_view).text = userId.toString()
         view.findViewById<TextView>(R.id.user_email_text_view).text = userEmail

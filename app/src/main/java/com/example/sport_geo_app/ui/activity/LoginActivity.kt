@@ -14,6 +14,9 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import com.example.sport_geo_app.MainActivity
 import com.example.sport_geo_app.R
+import com.example.sport_geo_app.utils.Constants.JWT_TOKEN_KEY
+import com.example.sport_geo_app.utils.Constants.USER_EMAIL_KEY
+import com.example.sport_geo_app.utils.Constants.USER_ID_KEY
 import com.example.sport_geo_app.utils.EncryptedPreferencesUtil
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInClient
@@ -88,7 +91,7 @@ class LoginActivity : AppCompatActivity() {
 
     private fun isLoggedIn(): Boolean {
         Log.d(TAG, encryptedSharedPreferences.all.toString())
-        return encryptedSharedPreferences.contains("user_id")
+        return encryptedSharedPreferences.contains(USER_ID_KEY)
     }
 
     private fun initializeViews() {
@@ -131,8 +134,10 @@ class LoginActivity : AppCompatActivity() {
         authService.loginWithEmail(email, password) { response, error ->
             runOnUiThread {
                 if (error != null) {
+                    Log.d(TAG, error.toString())
                     handleErrorResponse(error)
                 } else if (response != null) {
+                    Log.d(TAG, response.toString())
                     handleSuccessResponse(response.string())
                 } else {
                     handleErrorResponse(null)
@@ -173,9 +178,9 @@ class LoginActivity : AppCompatActivity() {
 
     private fun saveUserData(userId: Int, jwtToken: String, userEmail: String) {
         with(encryptedSharedPreferences.edit()) {
-            putInt("user_id", userId)
-            putString("user_email", userEmail)
-            putString("jwtToken", jwtToken)
+            putInt(USER_ID_KEY, userId)
+            putString(USER_EMAIL_KEY, userEmail)
+            putString(JWT_TOKEN_KEY, jwtToken)
             apply()
         }
     }

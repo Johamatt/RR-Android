@@ -4,6 +4,7 @@ package com.example.sport_geo_app.data.network
 import android.content.Context
 import com.example.sport_geo_app.R
 import com.example.sport_geo_app.data.network.utils.AuthInterceptor
+import com.example.sport_geo_app.utils.Constants.JWT_TOKEN_KEY
 import com.example.sport_geo_app.utils.EncryptedPreferencesUtil
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.OkHttpClient
@@ -24,7 +25,7 @@ class NetworkService(context: Context) {
     private val retrofit: Retrofit
 
     init {
-        val token = encryptedSharedPreferences.getString("jwtToken", null)
+        val token = encryptedSharedPreferences.getString(JWT_TOKEN_KEY, null)
         val okHttpClient = OkHttpClient.Builder()
             .addInterceptor(AuthInterceptor(token))
             .build()

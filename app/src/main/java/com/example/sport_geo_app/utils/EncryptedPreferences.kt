@@ -4,11 +4,9 @@ import android.content.Context
 import android.content.SharedPreferences
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKey
+import com.example.sport_geo_app.utils.Constants.PREFS_FILENAME
 
 object EncryptedPreferencesUtil {
-
-    private const val PREFS_FILENAME = "encrypted_user_prefs"
-
     fun getEncryptedSharedPreferences(context: Context): SharedPreferences {
         val masterKeyAlias = MasterKey.Builder(context)
             .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
