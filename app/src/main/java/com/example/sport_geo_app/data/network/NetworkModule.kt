@@ -10,6 +10,7 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
+import javax.inject.Named
 import javax.inject.Singleton
 
 @Module
@@ -17,11 +18,15 @@ import javax.inject.Singleton
 object NetworkModule {
 
     @Provides
-    @Singleton
-    fun provideRetrofit(@ApplicationContext context: Context): Retrofit {
-        val baseUrl = context.getString(R.string.EC2_PUBLIC_IP)
+    @Named("EC2_PUBLIC_IP")
+    fun provideEC2PublicIp(@ApplicationContext context: Context): String {
+        return context.getString(R.string.EC2_PUBLIC_IP)
+    }
+
+    @Provides
+    fun provideRetrofit(@Named("EC2_PUBLIC_IP") ec2PublicIp: String): Retrofit {
         return Retrofit.Builder()
-            .baseUrl(baseUrl)
+            .baseUrl(ec2PublicIp)
             .addConverterFactory(GsonConverterFactory.create())
             .build()
     }

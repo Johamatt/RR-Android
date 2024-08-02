@@ -1,10 +1,10 @@
 package com.example.sport_geo_app.data.network.auth
-
-import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 import okhttp3.ResponseBody
 
@@ -20,34 +20,23 @@ class AuthViewModel @Inject constructor(
     val registerResult: LiveData<Result<ResponseBody>> = _registerResult
 
     fun loginWithEmail(email: String, password: String) {
-        authRepository.loginWithEmail(email, password) { response, error ->
-            _loginResult.value = if (response != null) {
-                Result.success(response)
-            } else {
-                Result.failure(error ?: Throwable("Unknown error occurred"))
-            }
+        viewModelScope.launch {
+            val result = authRepository.loginWithEmail(email, password)
+            _loginResult.value = result
         }
     }
 
     fun loginWithGoogle(idToken: String) {
-        Log.d("AuthViewModel", "Attempting Google login")
-        authRepository.loginWithGoogle(idToken) { response, error ->
-            Log.d("AuthViewModel", "Google login response: ${response?.string()}")
-            _loginResult.value = if (response != null) {
-                Result.success(response)
-            } else {
-                Result.failure(error ?: Throwable("Unknown error occurred"))
-            }
+        viewModelScope.launch {
+            val result = authRepository.loginWithGoogle(idToken)
+            _loginResult.value = result
         }
     }
 
     fun registerUser(email: String, password: String) {
-        authRepository.registerUser(email, password) { response, error ->
-            _registerResult.value = if (response != null) {
-                Result.success(response)
-            } else {
-                Result.failure(error ?: Throwable("Unknown error occurred"))
-            }
+        viewModelScope.launch {
+            val result = authRepository.registerUser(email, password)
+            _registerResult.value = result
         }
     }
 }

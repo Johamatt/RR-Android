@@ -18,13 +18,12 @@ import com.example.sport_geo_app.data.network.auth.AuthViewModel
 import com.example.sport_geo_app.utils.Constants.JWT_TOKEN_KEY
 import com.example.sport_geo_app.utils.Constants.USER_EMAIL_KEY
 import com.example.sport_geo_app.utils.Constants.USER_ID_KEY
-import com.example.sport_geo_app.utils.EncryptedPreferencesUtil
+import com.example.sport_geo_app.utils.ErrorManager
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInClient
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.common.api.ApiException
 import dagger.hilt.android.AndroidEntryPoint
-import org.json.JSONException
 import org.json.JSONObject
 import javax.inject.Inject
 
@@ -41,6 +40,7 @@ class LoginActivity : AppCompatActivity() {
     private lateinit var registerText: TextView
     private val authViewModel: AuthViewModel by viewModels()
     @Inject lateinit var encryptedSharedPreferences: SharedPreferences
+    @Inject lateinit var errorManager: ErrorManager
 
     private val TAG = "LoginActivity"
 
@@ -60,11 +60,11 @@ class LoginActivity : AppCompatActivity() {
 
         authViewModel.loginResult.observe(this) { result ->
             result.onSuccess { responseBody ->
-                Log.d(TAG,responseBody.toString())
+                Log.d(TAG, responseBody.toString())
                 handleSuccessResponse(responseBody.string())
             }.onFailure { throwable ->
-                Log.d(TAG,throwable.toString())
-                handleErrorResponse(throwable)
+                Log.d(TAG, throwable.toString())
+                errorManager.handleErrorResponse(throwable)
             }
         }
     }
@@ -83,19 +83,11 @@ class LoginActivity : AppCompatActivity() {
         }
     }
 
+
     private fun loginWithGoogle(idToken: String, callback: (Boolean) -> Unit) {
         authViewModel.loginWithGoogle(idToken)
-        authViewModel.loginResult.observe(this) { result ->
-            result.onSuccess { responseBody ->
-                handleSuccessResponse(responseBody.string())
-                callback(true)
-            }.onFailure { throwable ->
-                EncryptedPreferencesUtil.clearEncryptedPreferences(this)
-                handleErrorResponse(throwable)
-                callback(false)
-            }
-        }
     }
+
 
     private fun isLoggedIn(): Boolean {
         return encryptedSharedPreferences.contains(USER_ID_KEY)
@@ -155,19 +147,6 @@ class LoginActivity : AppCompatActivity() {
         }
     }
 
-    private fun handleErrorResponse(error: Throwable?) {
-        val errorMessage = error?.message?.let { message ->
-            try {
-                val jsonObject = JSONObject(message)
-                jsonObject.getString("message")
-            } catch (e: JSONException) {
-                e.printStackTrace()
-                "Failed to parse error response"
-            }
-        } ?: "Unknown error occurred: ${error?.javaClass?.simpleName ?: "Unknown"}"
-
-        displayErrorMessage(errorMessage)
-    }
 
     private fun saveUserData(userId: Int, jwtToken: String, userEmail: String) {
         with(encryptedSharedPreferences.edit()) {
