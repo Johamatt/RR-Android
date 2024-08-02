@@ -1,35 +1,38 @@
 package com.example.sport_geo_app.ui.activity
 
-import com.example.sport_geo_app.data.network.AuthService
 import android.content.Intent
 import android.content.SharedPreferences
 import android.os.Bundle
 import android.widget.Button
 import android.widget.Toast
+import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import com.example.sport_geo_app.MainActivity
 import com.example.sport_geo_app.R
+import com.example.sport_geo_app.data.network.auth.AuthViewModel
 import com.example.sport_geo_app.utils.Constants.JWT_TOKEN_KEY
 import com.example.sport_geo_app.utils.Constants.USER_EMAIL_KEY
 import com.example.sport_geo_app.utils.Constants.USER_ID_KEY
-import com.example.sport_geo_app.utils.EncryptedPreferencesUtil
 import com.google.android.material.textfield.TextInputEditText
+import dagger.hilt.android.AndroidEntryPoint
 import org.json.JSONException
 import org.json.JSONObject
+import javax.inject.Inject
 
 
+@AndroidEntryPoint
 class RegisterActivity : AppCompatActivity() {
+
+    @Inject lateinit var encryptedSharedPreferences: SharedPreferences
+    private val authViewModel: AuthViewModel by viewModels()
+
     private lateinit var emailInput: TextInputEditText
     private lateinit var passwordInput: TextInputEditText
     private lateinit var registerBtn: Button
-    private lateinit var authService: AuthService
-    private lateinit var encryptedSharedPreferences: SharedPreferences
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_register)
-        authService = AuthService(this)
-        encryptedSharedPreferences = EncryptedPreferencesUtil.getEncryptedSharedPreferences(this)
 
         initializeViews()
 
@@ -49,25 +52,24 @@ class RegisterActivity : AppCompatActivity() {
             val email = emailInput.text.toString()
             val password = passwordInput.text.toString()
             if (email.isNotEmpty() && password.isNotEmpty()) {
-                registerUser(email, password)
+                authViewModel.registerUser(email, password)
+                observeRegisterResult()
             } else {
                 showMessage("Please enter email and password")
             }
         }
     }
-    private fun isLoggedIn(): Boolean { // TODO change better verification
-        return encryptedSharedPreferences.contains("user_id")
+    // TODO change better verification
+    private fun isLoggedIn(): Boolean {
+        return encryptedSharedPreferences.contains(USER_ID_KEY)
     }
-    private fun registerUser(email: String, password: String) {
-        authService.registerUser(email, password) { response, error ->
-            runOnUiThread {
-                if (error != null) {
-                    handleErrorResponse(error)
-                } else if (response != null) {
-                    handleSuccessResponse(response.string())
-                } else {
-                    handleErrorResponse(null)
-                }
+
+    private fun observeRegisterResult() {
+        authViewModel.registerResult.observe(this) { result ->
+            result.onSuccess { responseBody ->
+                handleSuccessResponse(responseBody.string())
+            }.onFailure { throwable ->
+                handleErrorResponse(throwable)
             }
         }
     }
@@ -89,14 +91,10 @@ class RegisterActivity : AppCompatActivity() {
                 val userEmail = userJson.getString("email")
 
                 saveUserData(userId, jwtToken, userEmail)
-                runOnUiThread {
-                    navigateToMainActivity()
-                }
+                navigateToMainActivity()
             } catch (e: Exception) {
                 e.printStackTrace()
-                runOnUiThread {
-                    showMessage("Failed to parse user info")
-                }
+                showMessage("Failed to parse user info")
             }
         }
     }
@@ -112,9 +110,7 @@ class RegisterActivity : AppCompatActivity() {
             }
         } ?: "Unknown error occurred: ${error?.javaClass?.simpleName ?: "Unknown"}"
 
-        runOnUiThread {
-            showMessage(messageToShow)
-        }
+        showMessage(messageToShow)
     }
     private fun navigateToMainActivity() {
         val intent = Intent(this@RegisterActivity, MainActivity::class.java)
@@ -122,11 +118,8 @@ class RegisterActivity : AppCompatActivity() {
         finish()
     }
 
-
     private fun showMessage(message: String) {
-        runOnUiThread {
-            Toast.makeText(this@RegisterActivity, message, Toast.LENGTH_SHORT).show()
-        }
+        Toast.makeText(this@RegisterActivity, message, Toast.LENGTH_SHORT).show()
     }
 }
 

@@ -15,7 +15,7 @@ import com.example.sport_geo_app.R
 import com.example.sport_geo_app.data.model.CoordinatesPoint
 import com.example.sport_geo_app.data.model.PlaceModel
 import com.example.sport_geo_app.data.model.Workout
-import com.example.sport_geo_app.data.network.NetworkService
+import com.example.sport_geo_app.data.network.main.NetworkService
 import com.example.sport_geo_app.utils.EncryptedPreferencesUtil
 import java.text.SimpleDateFormat
 import java.util.*

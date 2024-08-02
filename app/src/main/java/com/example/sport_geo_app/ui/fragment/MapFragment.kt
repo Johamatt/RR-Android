@@ -42,7 +42,7 @@ import com.mapbox.maps.viewannotation.geometry
 import com.mapbox.maps.viewannotation.viewAnnotationOptions
 import com.example.sport_geo_app.R
 import com.example.sport_geo_app.data.model.PlaceMapMarkerModel
-import com.example.sport_geo_app.data.network.NetworkService
+import com.example.sport_geo_app.data.network.main.NetworkService
 import com.example.sport_geo_app.utils.EncryptedPreferencesUtil
 import com.google.gson.Gson
 import com.mapbox.geojson.Feature

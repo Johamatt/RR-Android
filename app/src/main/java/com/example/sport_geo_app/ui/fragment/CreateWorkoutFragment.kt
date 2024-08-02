@@ -2,7 +2,6 @@ package com.example.sport_geo_app.ui.fragment
 
 import android.app.DatePickerDialog
 import android.app.TimePickerDialog
-import android.graphics.Point
 import android.icu.util.Calendar
 import android.os.Bundle
 import android.util.Log
@@ -14,7 +13,7 @@ import android.widget.EditText
 import android.widget.TextView
 import androidx.fragment.app.DialogFragment
 import com.example.sport_geo_app.R
-import com.example.sport_geo_app.data.network.NetworkService
+import com.example.sport_geo_app.data.network.main.NetworkService
 import org.json.JSONException
 import org.json.JSONObject
 

@@ -1,5 +1,4 @@
 package com.example.sport_geo_app.ui.activity
-import com.example.sport_geo_app.data.network.AuthService
 import android.app.Activity
 import android.content.Intent
 import android.content.SharedPreferences
@@ -11,9 +10,11 @@ import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import com.example.sport_geo_app.MainActivity
 import com.example.sport_geo_app.R
+import com.example.sport_geo_app.data.network.auth.AuthViewModel
 import com.example.sport_geo_app.utils.Constants.JWT_TOKEN_KEY
 import com.example.sport_geo_app.utils.Constants.USER_EMAIL_KEY
 import com.example.sport_geo_app.utils.Constants.USER_ID_KEY
@@ -22,9 +23,13 @@ import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInClient
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.common.api.ApiException
+import dagger.hilt.android.AndroidEntryPoint
 import org.json.JSONException
 import org.json.JSONObject
+import javax.inject.Inject
 
+//TODO GOOGLE SIGN-IN DEPRECATED https://developers.google.com/identity/sign-in/android/legacy-sign-in
+@AndroidEntryPoint
 class LoginActivity : AppCompatActivity() {
 
     private lateinit var gso: GoogleSignInOptions
@@ -34,17 +39,14 @@ class LoginActivity : AppCompatActivity() {
     private lateinit var passwordInput: EditText
     private lateinit var emailLoginBtn: Button
     private lateinit var registerText: TextView
-    private lateinit var authService: AuthService
-    private lateinit var encryptedSharedPreferences: SharedPreferences
+    private val authViewModel: AuthViewModel by viewModels()
+    @Inject lateinit var encryptedSharedPreferences: SharedPreferences
 
-    private var TAG = "LoginActivity"
+    private val TAG = "LoginActivity"
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_login)
-
-        authService = AuthService(this)
-        encryptedSharedPreferences = EncryptedPreferencesUtil.getEncryptedSharedPreferences(this)
 
         checkAndHandleGoogleSignIn { isGoogleSignInSuccessful ->
             if (!isGoogleSignInSuccessful && isLoggedIn()) {
@@ -53,6 +55,16 @@ class LoginActivity : AppCompatActivity() {
                 initializeViews()
                 setupGoogleSignIn()
                 setupListeners()
+            }
+        }
+
+        authViewModel.loginResult.observe(this) { result ->
+            result.onSuccess { responseBody ->
+                Log.d(TAG,responseBody.toString())
+                handleSuccessResponse(responseBody.string())
+            }.onFailure { throwable ->
+                Log.d(TAG,throwable.toString())
+                handleErrorResponse(throwable)
             }
         }
     }
@@ -72,25 +84,20 @@ class LoginActivity : AppCompatActivity() {
     }
 
     private fun loginWithGoogle(idToken: String, callback: (Boolean) -> Unit) {
-        authService.loginWithGoogle(idToken) { response, error ->
-            runOnUiThread {
-                if (error != null) {
-                    EncryptedPreferencesUtil.clearEncryptedPreferences(this)
-                    handleErrorResponse(error)
-                    callback(false)
-                } else if (response != null) {
-                    handleSuccessResponse(response.string())
-                    callback(true)
-                } else {
-                    displayErrorMessage("Authentication failed")
-                    callback(false)
-                }
+        authViewModel.loginWithGoogle(idToken)
+        authViewModel.loginResult.observe(this) { result ->
+            result.onSuccess { responseBody ->
+                handleSuccessResponse(responseBody.string())
+                callback(true)
+            }.onFailure { throwable ->
+                EncryptedPreferencesUtil.clearEncryptedPreferences(this)
+                handleErrorResponse(throwable)
+                callback(false)
             }
         }
     }
 
     private fun isLoggedIn(): Boolean {
-        Log.d(TAG, encryptedSharedPreferences.all.toString())
         return encryptedSharedPreferences.contains(USER_ID_KEY)
     }
 
@@ -100,7 +107,6 @@ class LoginActivity : AppCompatActivity() {
         passwordInput = findViewById(R.id.password_input)
         emailLoginBtn = findViewById(R.id.email_login_btn)
         registerText = findViewById(R.id.register_btn)
-
     }
 
     private fun setupGoogleSignIn() {
@@ -131,23 +137,10 @@ class LoginActivity : AppCompatActivity() {
     }
 
     private fun loginWithEmail(email: String, password: String) {
-        authService.loginWithEmail(email, password) { response, error ->
-            runOnUiThread {
-                if (error != null) {
-                    Log.d(TAG, error.toString())
-                    handleErrorResponse(error)
-                } else if (response != null) {
-                    Log.d(TAG, response.toString())
-                    handleSuccessResponse(response.string())
-                } else {
-                    handleErrorResponse(null)
-                }
-            }
-        }
+        authViewModel.loginWithEmail(email, password)
     }
 
     private fun handleSuccessResponse(responseBody: String) {
-        Log.d(TAG, responseBody)
         try {
             val jsonObject = JSONObject(responseBody)
             val userJson = jsonObject.getJSONObject("user")
@@ -186,6 +179,7 @@ class LoginActivity : AppCompatActivity() {
     }
 
     private val signInLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+        Log.d(TAG, "Result Code: ${result.resultCode}")
         if (result.resultCode == Activity.RESULT_OK) {
             val data: Intent? = result.data
             val task = GoogleSignIn.getSignedInAccountFromIntent(data)
@@ -200,7 +194,7 @@ class LoginActivity : AppCompatActivity() {
                     }
                 }
             } catch (e: ApiException) {
-                displayErrorMessage("Google Sign-In failed")
+                displayErrorMessage("Google Sign-In failed: ${e.localizedMessage}")
                 e.printStackTrace()
             }
         }
