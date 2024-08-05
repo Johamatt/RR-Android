@@ -1,5 +1,4 @@
 package com.example.sport_geo_app.ui.fragment
-import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
 import android.os.Bundle
@@ -74,9 +73,13 @@ class HomeFragment : Fragment() {
     private fun signOut() {
         gsc.signOut().addOnCompleteListener(requireActivity()) { task ->
             if (task.isSuccessful) {
-                EncryptedPreferencesUtil.clearEncryptedPreferences(requireContext())
-                activity?.finish()
+                try {
+                    EncryptedPreferencesUtil.clearEncryptedPreferences(requireContext())
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
                 startActivity(Intent(activity, LoginActivity::class.java))
+                activity?.finish()
             } else {
                 Toast.makeText(requireContext(), "Sign out failed", Toast.LENGTH_SHORT).show()
             }

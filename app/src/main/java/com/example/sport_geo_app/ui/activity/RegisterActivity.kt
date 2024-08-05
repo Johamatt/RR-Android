@@ -1,7 +1,6 @@
 package com.example.sport_geo_app.ui.activity
 
 import android.content.Intent
-import android.content.SharedPreferences
 import android.os.Bundle
 import android.widget.Button
 import android.widget.Toast
@@ -10,20 +9,15 @@ import androidx.appcompat.app.AppCompatActivity
 import com.example.sport_geo_app.MainActivity
 import com.example.sport_geo_app.R
 import com.example.sport_geo_app.data.network.auth.AuthViewModel
-import com.example.sport_geo_app.utils.Constants.JWT_TOKEN_KEY
-import com.example.sport_geo_app.utils.Constants.USER_EMAIL_KEY
-import com.example.sport_geo_app.utils.Constants.USER_ID_KEY
 import com.example.sport_geo_app.utils.ErrorManager
 import com.google.android.material.textfield.TextInputEditText
 import dagger.hilt.android.AndroidEntryPoint
-import org.json.JSONObject
 import javax.inject.Inject
 
 
 @AndroidEntryPoint
 class RegisterActivity : AppCompatActivity() {
 
-    @Inject lateinit var encryptedSharedPreferences: SharedPreferences
     @Inject lateinit var errorManager: ErrorManager
     private val authViewModel: AuthViewModel by viewModels()
 
@@ -39,7 +33,8 @@ class RegisterActivity : AppCompatActivity() {
 
         authViewModel.registerResult.observe(this) { result ->
             result.onSuccess { responseBody ->
-                handleSuccessResponse(responseBody.string())
+                authViewModel.handleSuccessResponse(responseBody.string())
+                navigateToMainActivity()
             }.onFailure { throwable ->
                 errorManager.handleErrorResponse(throwable)
             }
@@ -62,40 +57,14 @@ class RegisterActivity : AppCompatActivity() {
         }
     }
 
-    private fun saveUserData(userId: Int, jwtToken: String, userEmail: String) {
-        with(encryptedSharedPreferences.edit()) {
-            putInt(USER_ID_KEY, userId)
-            putString(USER_EMAIL_KEY, userEmail)
-            putString(JWT_TOKEN_KEY, jwtToken)
-            apply()
-        }
-    }
-    private fun handleSuccessResponse(responseBody: String?) {
-        responseBody?.let {
-            try {
-                val jsonObject = JSONObject(responseBody)
-                val userJson = jsonObject.getJSONObject("user")
-                val jwtToken = jsonObject.getString("jwtToken")
-                val userId = userJson.getInt("user_id")
-                val userEmail = userJson.getString("email")
-
-                saveUserData(userId, jwtToken, userEmail)
-                navigateToMainActivity()
-            } catch (e: Exception) {
-                e.printStackTrace()
-                showMessage("Failed to parse user info")
-            }
-        }
+    private fun showMessage(message: String) {
+        Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
     }
 
     private fun navigateToMainActivity() {
         val intent = Intent(this@RegisterActivity, MainActivity::class.java)
         startActivity(intent)
         finish()
-    }
-
-    private fun showMessage(message: String) {
-        Toast.makeText(this@RegisterActivity, message, Toast.LENGTH_SHORT).show()
     }
 }
 

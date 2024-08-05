@@ -15,8 +15,6 @@ import androidx.appcompat.app.AppCompatActivity
 import com.example.sport_geo_app.MainActivity
 import com.example.sport_geo_app.R
 import com.example.sport_geo_app.data.network.auth.AuthViewModel
-import com.example.sport_geo_app.utils.Constants.JWT_TOKEN_KEY
-import com.example.sport_geo_app.utils.Constants.USER_EMAIL_KEY
 import com.example.sport_geo_app.utils.Constants.USER_ID_KEY
 import com.example.sport_geo_app.utils.ErrorManager
 import com.google.android.gms.auth.api.signin.GoogleSignIn
@@ -24,7 +22,6 @@ import com.google.android.gms.auth.api.signin.GoogleSignInClient
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.common.api.ApiException
 import dagger.hilt.android.AndroidEntryPoint
-import org.json.JSONObject
 import javax.inject.Inject
 
 //TODO GOOGLE SIGN-IN DEPRECATED https://developers.google.com/identity/sign-in/android/legacy-sign-in
@@ -61,7 +58,8 @@ class LoginActivity : AppCompatActivity() {
         authViewModel.loginResult.observe(this) { result ->
             result.onSuccess { responseBody ->
                 Log.d(TAG, responseBody.toString())
-                handleSuccessResponse(responseBody.string())
+                authViewModel.handleSuccessResponse(responseBody.string())
+                navigateToMainActivity()
             }.onFailure { throwable ->
                 Log.d(TAG, throwable.toString())
                 errorManager.handleErrorResponse(throwable)
@@ -132,30 +130,7 @@ class LoginActivity : AppCompatActivity() {
         authViewModel.loginWithEmail(email, password)
     }
 
-    private fun handleSuccessResponse(responseBody: String) {
-        try {
-            val jsonObject = JSONObject(responseBody)
-            val userJson = jsonObject.getJSONObject("user")
-            val jwtToken = jsonObject.getString("jwtToken")
-            val userId = userJson.getInt("user_id")
-            val userEmail = userJson.getString("email")
-            saveUserData(userId, jwtToken, userEmail)
-            navigateToMainActivity()
-        } catch (e: Exception) {
-            displayErrorMessage("Failed to parse user info")
-            e.printStackTrace()
-        }
-    }
 
-
-    private fun saveUserData(userId: Int, jwtToken: String, userEmail: String) {
-        with(encryptedSharedPreferences.edit()) {
-            putInt(USER_ID_KEY, userId)
-            putString(USER_EMAIL_KEY, userEmail)
-            putString(JWT_TOKEN_KEY, jwtToken)
-            apply()
-        }
-    }
 
     private val signInLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
         Log.d(TAG, "Result Code: ${result.resultCode}")
@@ -187,5 +162,6 @@ class LoginActivity : AppCompatActivity() {
         startActivity(Intent(this, MainActivity::class.java))
         finish()
     }
+
 }
 

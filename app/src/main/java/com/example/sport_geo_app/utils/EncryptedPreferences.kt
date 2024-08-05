@@ -5,6 +5,7 @@ import android.content.SharedPreferences
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKey
 import com.example.sport_geo_app.utils.Constants.PREFS_FILENAME
+import java.security.GeneralSecurityException
 
 object EncryptedPreferencesUtil {
     fun getEncryptedSharedPreferences(context: Context): SharedPreferences {
@@ -24,8 +25,12 @@ object EncryptedPreferencesUtil {
     fun clearEncryptedPreferences(context: Context) {
         val sharedPreferences = getEncryptedSharedPreferences(context)
         val editor = sharedPreferences.edit()
-        editor.clear()
-        editor.apply()
+        try {
+            editor.clear()
+            editor.apply()
+        } catch (e: GeneralSecurityException) {
+            e.printStackTrace()
+        }
     }
 
 

@@ -1,16 +1,25 @@
 package com.example.sport_geo_app.data.network.auth
+import android.content.Context
+import android.widget.Toast
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.sport_geo_app.utils.Constants.JWT_TOKEN_KEY
+import com.example.sport_geo_app.utils.Constants.USER_EMAIL_KEY
+import com.example.sport_geo_app.utils.Constants.USER_ID_KEY
+import com.example.sport_geo_app.utils.EncryptedPreferencesUtil
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 import okhttp3.ResponseBody
+import org.json.JSONObject
 
 @HiltViewModel
 class AuthViewModel @Inject constructor(
-    private val authRepository: AuthRepository
+    private val authRepository: AuthRepository,
+    @ApplicationContext private val context: Context
 ) : ViewModel() {
 
     private val _loginResult = MutableLiveData<Result<ResponseBody>>()
@@ -19,6 +28,7 @@ class AuthViewModel @Inject constructor(
     private val _registerResult = MutableLiveData<Result<ResponseBody>>()
     val registerResult: LiveData<Result<ResponseBody>> = _registerResult
 
+    private val encryptedSharedPreferences = EncryptedPreferencesUtil.getEncryptedSharedPreferences(context)
     fun loginWithEmail(email: String, password: String) {
         viewModelScope.launch {
             val result = authRepository.loginWithEmail(email, password)
@@ -37,6 +47,32 @@ class AuthViewModel @Inject constructor(
         viewModelScope.launch {
             val result = authRepository.registerUser(email, password)
             _registerResult.value = result
+        }
+    }
+
+    fun saveUserData(userId: Int, jwtToken: String, userEmail: String) {
+        with(encryptedSharedPreferences.edit()) {
+            putInt(USER_ID_KEY, userId)
+            putString(USER_EMAIL_KEY, userEmail)
+            putString(JWT_TOKEN_KEY, jwtToken)
+            apply()
+        }
+    }
+
+    fun handleSuccessResponse(responseBody: String?) {
+        responseBody?.let {
+            try {
+                val jsonObject = JSONObject(responseBody)
+                val userJson = jsonObject.getJSONObject("user")
+                val jwtToken = jsonObject.getString("jwtToken")
+                val userId = userJson.getInt("user_id")
+                val userEmail = userJson.getString("email")
+
+                saveUserData(userId, jwtToken, userEmail)
+            } catch (e: Exception) {
+                e.printStackTrace()
+                Toast.makeText(context, "Failed to parse user info", Toast.LENGTH_SHORT).show()
+            }
         }
     }
 }

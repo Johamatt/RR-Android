@@ -14,14 +14,12 @@ import com.example.sport_geo_app.utils.EncryptedPreferencesUtil
 class MainActivity : AppCompatActivity() {
     private lateinit var bottomNavigationView: BottomNavigationView
     private lateinit var encryptedSharedPreferences: SharedPreferences
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
         bottomNavigationView = findViewById(R.id.bottom_navigation)
         encryptedSharedPreferences = EncryptedPreferencesUtil.getEncryptedSharedPreferences(this)
-
         bottomNavigationView.setOnItemSelectedListener { menuItem ->
             when (menuItem.itemId) {
                 R.id.bottom_home -> {
@@ -32,7 +30,6 @@ class MainActivity : AppCompatActivity() {
                     openFragment(MapFragment())
                     true
                 }
-
                 R.id.bottom_workouts -> {
                     openFragment(WorkoutsFragment())
                     true
@@ -42,16 +39,13 @@ class MainActivity : AppCompatActivity() {
         }
 
         if (savedInstanceState == null) {
-
-                bottomNavigationView.selectedItemId = R.id.bottom_home
-
+            bottomNavigationView.selectedItemId = R.id.bottom_home
         }
     }
 
     private fun openFragment(fragment: Fragment) {
         val transaction = supportFragmentManager.beginTransaction()
         val fragmentTag = fragment.javaClass.simpleName
-
 
         val existingFragment = supportFragmentManager.findFragmentByTag(fragmentTag)
         if (existingFragment != null) {
@@ -70,5 +64,4 @@ class MainActivity : AppCompatActivity() {
         transaction.setReorderingAllowed(true)
         transaction.commit()
     }
-
 }
