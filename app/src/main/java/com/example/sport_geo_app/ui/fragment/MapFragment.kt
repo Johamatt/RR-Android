@@ -43,30 +43,33 @@ import com.mapbox.maps.viewannotation.viewAnnotationOptions
 import com.example.sport_geo_app.R
 import com.example.sport_geo_app.data.model.PlaceMapMarkerModel
 import com.example.sport_geo_app.data.network.main.NetworkService
-import com.example.sport_geo_app.utils.EncryptedPreferencesUtil
 import com.google.gson.Gson
 import com.mapbox.geojson.Feature
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import android.Manifest
 import androidx.lifecycle.lifecycleScope
+import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 
-
+@AndroidEntryPoint
 class MapFragment : Fragment() {
 
     private lateinit var mapView: MapView
     private lateinit var locationListener: LocationListener
     private lateinit var viewAnnotationManager: ViewAnnotationManager
-    private lateinit var networkService: NetworkService
-    private lateinit var encryptedSharedPreferences: SharedPreferences
+
+    @Inject lateinit var encryptedSharedPreferences: SharedPreferences
     private lateinit var requestPermissionLauncher: ActivityResultLauncher<Array<String>>
 
+
+    @Inject lateinit var networkService: NetworkService
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
     ): View? {
-        encryptedSharedPreferences = EncryptedPreferencesUtil.getEncryptedSharedPreferences(requireContext())
-        networkService = NetworkService(requireContext())
+
+
         return inflater.inflate(R.layout.fragment_map, container, false).apply {
             mapView = findViewById(R.id.mapView)
         }

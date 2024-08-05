@@ -1,6 +1,5 @@
 package com.example.sport_geo_app.data.network.auth
-import android.content.Context
-import android.widget.Toast
+import android.content.SharedPreferences
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -8,9 +7,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.sport_geo_app.utils.Constants.JWT_TOKEN_KEY
 import com.example.sport_geo_app.utils.Constants.USER_EMAIL_KEY
 import com.example.sport_geo_app.utils.Constants.USER_ID_KEY
-import com.example.sport_geo_app.utils.EncryptedPreferencesUtil
 import dagger.hilt.android.lifecycle.HiltViewModel
-import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 import okhttp3.ResponseBody
@@ -19,7 +16,8 @@ import org.json.JSONObject
 @HiltViewModel
 class AuthViewModel @Inject constructor(
     private val authRepository: AuthRepository,
-    @ApplicationContext private val context: Context
+    private var encryptedSharedPreferences: SharedPreferences
+
 ) : ViewModel() {
 
     private val _loginResult = MutableLiveData<Result<ResponseBody>>()
@@ -28,7 +26,6 @@ class AuthViewModel @Inject constructor(
     private val _registerResult = MutableLiveData<Result<ResponseBody>>()
     val registerResult: LiveData<Result<ResponseBody>> = _registerResult
 
-    private val encryptedSharedPreferences = EncryptedPreferencesUtil.getEncryptedSharedPreferences(context)
     fun loginWithEmail(email: String, password: String) {
         viewModelScope.launch {
             val result = authRepository.loginWithEmail(email, password)
@@ -71,8 +68,9 @@ class AuthViewModel @Inject constructor(
                 saveUserData(userId, jwtToken, userEmail)
             } catch (e: Exception) {
                 e.printStackTrace()
-                Toast.makeText(context, "Failed to parse user info", Toast.LENGTH_SHORT).show()
+                // Handle the exception properly
             }
         }
     }
 }
+

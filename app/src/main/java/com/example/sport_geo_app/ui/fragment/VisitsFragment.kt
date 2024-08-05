@@ -16,20 +16,21 @@ import com.example.sport_geo_app.data.model.CoordinatesPoint
 import com.example.sport_geo_app.data.model.PlaceModel
 import com.example.sport_geo_app.data.model.Workout
 import com.example.sport_geo_app.data.network.main.NetworkService
-import com.example.sport_geo_app.utils.EncryptedPreferencesUtil
+import dagger.hilt.android.AndroidEntryPoint
 import java.text.SimpleDateFormat
 import java.util.*
 import okhttp3.ResponseBody
 import org.json.JSONArray
 import java.text.ParseException
+import javax.inject.Inject
 
-
+@AndroidEntryPoint
 class WorkoutsFragment : Fragment() {
 
     private lateinit var recyclerView: RecyclerView
     private lateinit var workoutsAdapter: WorkoutsAdapter
-    private lateinit var encryptedSharedPreferences: SharedPreferences
-    private lateinit var networkService: NetworkService
+    @Inject lateinit var encryptedSharedPreferences: SharedPreferences
+    @Inject lateinit var networkService: NetworkService
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -37,8 +38,8 @@ class WorkoutsFragment : Fragment() {
     ): View? {
         val view = inflater.inflate(R.layout.fragment_workouts, container, false)
 
-        encryptedSharedPreferences = EncryptedPreferencesUtil.getEncryptedSharedPreferences(requireContext())
-        networkService = NetworkService(requireContext())
+   //     encryptedSharedPreferences = EncryptedPreferencesUtil.getEncryptedSharedPreferences(requireContext())
+   //     networkService = NetworkService(requireContext())
 
 
         val userId = encryptedSharedPreferences.getInt("user_id", -1)
@@ -52,7 +53,7 @@ class WorkoutsFragment : Fragment() {
     }
 
     private fun fetchWorkoutsData(userId: Int, view: View) {
-        val networkService = NetworkService(requireContext())
+     //   val networkService = NetworkService(requireContext())
         networkService.getWorkouts(userId) { response, error ->
             when {
                 error != null -> showCustomToast(error.message)

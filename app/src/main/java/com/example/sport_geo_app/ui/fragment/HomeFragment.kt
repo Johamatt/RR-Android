@@ -15,11 +15,14 @@ import com.example.sport_geo_app.ui.activity.LoginActivity
 import com.example.sport_geo_app.utils.AdManager
 import com.example.sport_geo_app.utils.Constants.USER_EMAIL_KEY
 import com.example.sport_geo_app.utils.Constants.USER_ID_KEY
-import com.example.sport_geo_app.utils.EncryptedPreferencesUtil
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInClient
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
+import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 
+
+@AndroidEntryPoint
 class HomeFragment : Fragment() {
 
     private lateinit var gso: GoogleSignInOptions
@@ -27,7 +30,7 @@ class HomeFragment : Fragment() {
     private lateinit var signOutBtn: Button
     private lateinit var adManager: AdManager
     private lateinit var loadAdBtn: Button
-    private lateinit var encryptedSharedPreferences: SharedPreferences
+    @Inject lateinit var encryptedSharedPreferences: SharedPreferences
 
 
     override fun onCreateView(
@@ -50,7 +53,6 @@ class HomeFragment : Fragment() {
             signOut()
         }
 
-        encryptedSharedPreferences = EncryptedPreferencesUtil.getEncryptedSharedPreferences(requireContext())
 
         val userId = encryptedSharedPreferences.getInt(USER_ID_KEY, -1)
         val userEmail = encryptedSharedPreferences.getString(USER_EMAIL_KEY, "")
@@ -74,7 +76,7 @@ class HomeFragment : Fragment() {
         gsc.signOut().addOnCompleteListener(requireActivity()) { task ->
             if (task.isSuccessful) {
                 try {
-                    EncryptedPreferencesUtil.clearEncryptedPreferences(requireContext())
+                    encryptedSharedPreferences.edit().clear().apply()
                 } catch (e: Exception) {
                     e.printStackTrace()
                 }

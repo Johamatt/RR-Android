@@ -2,10 +2,11 @@ package com.example.sport_geo_app.data.network.main
 
 
 import android.content.Context
+import android.content.SharedPreferences
 import com.example.sport_geo_app.R
 import com.example.sport_geo_app.data.network.utils.AuthInterceptor
 import com.example.sport_geo_app.utils.Constants.JWT_TOKEN_KEY
-import com.example.sport_geo_app.utils.EncryptedPreferencesUtil
+import dagger.hilt.android.qualifiers.ApplicationContext
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.OkHttpClient
 import okhttp3.RequestBody.Companion.toRequestBody
@@ -16,13 +17,20 @@ import retrofit2.Callback
 import retrofit2.Response
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
+import javax.inject.Inject
+import javax.inject.Singleton
 
-class NetworkService(context: Context) {
+@Singleton
+class NetworkService @Inject constructor(
+    @ApplicationContext private val context: Context,
+    private val encryptedSharedPreferences: SharedPreferences
+) {
     private val EC2PublicIP = context.getString(R.string.EC2_PUBLIC_IP)
-    private val encryptedSharedPreferences =
-        EncryptedPreferencesUtil.getEncryptedSharedPreferences(context)
 
-    private val retrofit: Retrofit
+    private var retrofit: Retrofit = Retrofit.Builder()
+        .baseUrl(EC2PublicIP)
+        .addConverterFactory(GsonConverterFactory.create())
+        .build()
 
     init {
         val token = encryptedSharedPreferences.getString(JWT_TOKEN_KEY, null)

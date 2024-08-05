@@ -9,7 +9,6 @@ import javax.inject.Singleton
 @Singleton
 class AuthRepository @Inject constructor(
     private val authInterface: AuthInterface,
-    @ApplicationContext private val context: Context,
 ) {
     suspend fun loginWithEmail(email: String, password: String): Result<ResponseBody> {
         return try {
@@ -52,5 +51,5 @@ class AuthRepository @Inject constructor(
             Result.failure(e)
         }
     }
-
 }
+

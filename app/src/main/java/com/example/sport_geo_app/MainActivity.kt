@@ -8,18 +8,22 @@ import com.example.sport_geo_app.ui.fragment.MapFragment
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import android.content.SharedPreferences
 import com.example.sport_geo_app.ui.fragment.WorkoutsFragment
-import com.example.sport_geo_app.utils.EncryptedPreferencesUtil
+import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 
-
+@AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
     private lateinit var bottomNavigationView: BottomNavigationView
-    private lateinit var encryptedSharedPreferences: SharedPreferences
+
+    @Inject lateinit var encryptedSharedPreferences: SharedPreferences
+
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
         bottomNavigationView = findViewById(R.id.bottom_navigation)
-        encryptedSharedPreferences = EncryptedPreferencesUtil.getEncryptedSharedPreferences(this)
+
         bottomNavigationView.setOnItemSelectedListener { menuItem ->
             when (menuItem.itemId) {
                 R.id.bottom_home -> {

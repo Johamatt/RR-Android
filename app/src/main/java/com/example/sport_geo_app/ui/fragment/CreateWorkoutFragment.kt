@@ -14,6 +14,7 @@ import android.widget.TextView
 import androidx.fragment.app.DialogFragment
 import com.example.sport_geo_app.R
 import com.example.sport_geo_app.data.network.main.NetworkService
+import dagger.hilt.android.AndroidEntryPoint
 import org.json.JSONException
 import org.json.JSONObject
 
@@ -22,6 +23,7 @@ import org.json.JSONObject
 import java.text.SimpleDateFormat
 import java.util.*
 
+@AndroidEntryPoint
 class CreateWorkoutFragment : DialogFragment() {
     private lateinit var networkService: NetworkService
     private var placeName: String? = null
@@ -53,7 +55,7 @@ class CreateWorkoutFragment : DialogFragment() {
             findViewById<TextView>(R.id.workout_place_name).text = placeName
             findViewById<TextView>(R.id.workout_place_address).text = placeAddress
             findViewById<TextView>(R.id.workout_place_type).text = placeType
-            networkService = NetworkService(requireContext())
+   //         networkService = NetworkService(requireContext())
 
             selectedDateTextView = findViewById(R.id.selected_date)
             selectedTimeTextView = findViewById(R.id.selected_time)
