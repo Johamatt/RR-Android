@@ -12,20 +12,19 @@ import android.widget.Button
 import android.widget.EditText
 import android.widget.TextView
 import androidx.fragment.app.DialogFragment
+import androidx.fragment.app.viewModels
 import com.example.sport_geo_app.R
-import com.example.sport_geo_app.data.network.main.NetworkService
+import com.example.sport_geo_app.data.network.workouts.WorkoutViewModel
 import dagger.hilt.android.AndroidEntryPoint
-import org.json.JSONException
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.RequestBody.Companion.toRequestBody
 import org.json.JSONObject
-
-
-
 import java.text.SimpleDateFormat
 import java.util.*
 
+// TODO data models
 @AndroidEntryPoint
 class CreateWorkoutFragment : DialogFragment() {
-    private lateinit var networkService: NetworkService
     private var placeName: String? = null
     private var placeAddress: String? = null
     private var placeType: String? = null
@@ -33,7 +32,7 @@ class CreateWorkoutFragment : DialogFragment() {
     private var userId: Int = 0
     private lateinit var selectedDateTextView: TextView
     private lateinit var selectedTimeTextView: TextView
-
+    private val workOutViewModel: WorkoutViewModel by viewModels()
     private var TAG = "CreateWorkoutFragment"
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -47,16 +46,29 @@ class CreateWorkoutFragment : DialogFragment() {
         }
     }
 
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+
+        workOutViewModel.createWorkoutResult.observe(viewLifecycleOwner) { result ->
+            result.onSuccess { responseBody ->
+                Log.d(TAG, responseBody.toString())
+                dismiss()
+            }.onFailure { throwable ->
+                Log.d(TAG, throwable.toString())
+            }
+        }
+
+    }
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
+
         return inflater.inflate(R.layout.fragment_createworkout, container, false).apply {
             findViewById<TextView>(R.id.workout_place_name).text = placeName
             findViewById<TextView>(R.id.workout_place_address).text = placeAddress
             findViewById<TextView>(R.id.workout_place_type).text = placeType
-   //         networkService = NetworkService(requireContext())
-
             selectedDateTextView = findViewById(R.id.selected_date)
             selectedTimeTextView = findViewById(R.id.selected_time)
 
@@ -142,6 +154,7 @@ class CreateWorkoutFragment : DialogFragment() {
         }
     }
 
+    //TODO data models
     private fun saveWorkoutDetails(
         placeId: String?,
         userId: Int,
@@ -154,39 +167,23 @@ class CreateWorkoutFragment : DialogFragment() {
         sport: String,
         notes: String
     ) {
-        val requestBody = JSONObject().apply {
+        val jsonObject = JSONObject().apply {
             put("place_id", placeId)
             put("user_id", userId)
-            put("name", name)
-            put("address", address)
-            put("type", type)
-            put("duration", duration)
-            put("date_time", dateTime)
-            put("intensity", intensity)
-            put("sport", sport)
-            put("notes", notes)
+//            put("name", name)
+//            put("address", address)
+//            put("type", type)
+//            put("duration", duration)
+//            put("date_time", dateTime)
+//            put("intensity", intensity)
+//            put("sport", sport)
+//            put("notes", notes)
         }
+        val requestBody = jsonObject.toString()
+            .toRequestBody("application/json; charset=utf-8".toMediaTypeOrNull())
+        Log.d(TAG, "Request body: $requestBody") // Log request body
+        workOutViewModel.createWorkOut(requestBody)
 
-        Log.d(TAG, requestBody.toString())
-
-        networkService.markWorkout(
-            requestBody,
-            callback = { _, error ->
-                if (error != null) {
-                    try {
-                        val errorJson = JSONObject(error.message)
-                        val errorMessage = errorJson.getString("message")
-                        showCustomToast(errorMessage)
-                    } catch (e: JSONException) {
-                        showCustomToast("Error parsing error response")
-                    }
-                } else {
-                    showCustomToast("Added to workouts")
-                }
-            }
-        )
-
-        dismiss()
     }
 
     private fun showCustomToast(message: String) {

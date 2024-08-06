@@ -73,6 +73,7 @@ class HomeFragment : Fragment() {
     }
 
     private fun signOut() {
+        encryptedSharedPreferences.edit().clear().apply()
         gsc.signOut().addOnCompleteListener(requireActivity()) { task ->
             if (task.isSuccessful) {
                 try {
@@ -85,6 +86,7 @@ class HomeFragment : Fragment() {
             } else {
                 Toast.makeText(requireContext(), "Sign out failed", Toast.LENGTH_SHORT).show()
             }
+            //TODO inject errormanager
         }
     }
 }

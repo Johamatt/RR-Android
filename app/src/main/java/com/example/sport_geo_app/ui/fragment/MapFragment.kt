@@ -1,16 +1,13 @@
 package com.example.sport_geo_app.ui.fragment
-
 import android.content.SharedPreferences
 import android.graphics.Color
 import android.os.Bundle
 import android.util.Log
-import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
 import android.widget.TextView
-import android.widget.Toast
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
@@ -42,13 +39,11 @@ import com.mapbox.maps.viewannotation.geometry
 import com.mapbox.maps.viewannotation.viewAnnotationOptions
 import com.example.sport_geo_app.R
 import com.example.sport_geo_app.data.model.PlaceMapMarkerModel
-import com.example.sport_geo_app.data.network.main.NetworkService
 import com.google.gson.Gson
 import com.mapbox.geojson.Feature
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 import android.Manifest
-import androidx.lifecycle.lifecycleScope
+import androidx.fragment.app.viewModels
+import com.example.sport_geo_app.data.network.map.GeoDataViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 
@@ -56,20 +51,19 @@ import javax.inject.Inject
 class MapFragment : Fragment() {
 
     private lateinit var mapView: MapView
-    private lateinit var locationListener: LocationListener
     private lateinit var viewAnnotationManager: ViewAnnotationManager
-
-    @Inject lateinit var encryptedSharedPreferences: SharedPreferences
+    private lateinit var locationListener: LocationListener
     private lateinit var requestPermissionLauncher: ActivityResultLauncher<Array<String>>
 
 
-    @Inject lateinit var networkService: NetworkService
+    @Inject
+    lateinit var encryptedSharedPreferences: SharedPreferences
+
+    private val geoDataViewModel: GeoDataViewModel by viewModels()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
     ): View? {
-
-
         return inflater.inflate(R.layout.fragment_map, container, false).apply {
             mapView = findViewById(R.id.mapView)
         }
@@ -77,14 +71,20 @@ class MapFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        setupPermissions()
+        setupObservers()
+    }
+
+    private fun setupPermissions() {
         requestPermissionLauncher = registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { permissions ->
             val allPermissionsGranted = permissions.values.all { it }
             if (allPermissionsGranted) {
                 initializeMap()
             } else {
-                showCustomToast("Permissions not granted")
+                // Handle permissions not granted ym
             }
         }
+
         requestPermissionLauncher.launch(
             arrayOf(
                 Manifest.permission.ACCESS_FINE_LOCATION,
@@ -92,58 +92,73 @@ class MapFragment : Fragment() {
             )
         )
     }
+
+    private fun setupObservers() {
+        geoDataViewModel.geoDataResults.observe(viewLifecycleOwner) { result ->
+            result.onSuccess { geoJsonString ->
+                addClusteredGeoJsonSource(mapView.mapboxMap.style!!, geoJsonString)
+            }.onFailure { throwable ->
+                Log.d(TAG, throwable.toString())
+                //TODO inject errormanager
+            }
+        }
+    }
+
     private fun initializeMap() {
         mapView.mapboxMap.apply {
             setCamera(CameraOptions.Builder().zoom(10.0).pitch(0.0).build())
             loadStyle(Style.STANDARD) {
-                locationListener = LocationListener(mapView)
-                locationListener.setupGesturesListener(mapView)
-                locationListener.initLocationComponent(mapView)
-                viewAnnotationManager = mapView.viewAnnotationManager
-                addClusteredGeoJsonSource(it)
-                addOnMapClickListener { point ->
-                    handleMapClick(point)
-                    true
-                }
-                for ((drawableRes, id) in resourcesAndIds) {
-                    BitmapUtils.bitmapFromDrawableRes(requireContext(), drawableRes)
-                        ?.let { bitmap ->
-                            it.addImage(id, bitmap, true)
-                        }
-                }
-            }
-        }
-    }
-    private fun addClusteredGeoJsonSource(style: Style) {
-        networkService.getGeoJson { response, error ->
-            if (error != null) {
-                Log.e("MapFragment", "Network error: ${error.message}")
-                return@getGeoJson
-            }
-
-            val geoJsonString = response?.string() ?: run {
-                Log.e("MapFragment", "GeoJSON data is null or empty")
-                return@getGeoJson
-            }
-
-            if (geoJsonString.isNotEmpty()) {
-                lifecycleScope.launch(Dispatchers.Main) {
-                    style.addSource(
-                        geoJsonSource(GEOJSON_SOURCE_ID) {
-                            data(geoJsonString)
-                            cluster(true)
-                            maxzoom(14)
-                            clusterRadius(50)
-                        }
-                    )
-                    addMapLayers(style)
-                }
-            } else {
-                Log.e("MapFragment", "GeoJSON data is empty")
+                setupLocationListener()
+                setupViewAnnotationManager()
+                geoDataViewModel.getGeoJson()
+                setupMapClickListener()
+                addMapImages()
             }
         }
     }
 
+    private fun setupLocationListener() {
+        locationListener = LocationListener(mapView).apply {
+            setupGesturesListener(mapView)
+            initLocationComponent(mapView)
+        }
+    }
+
+    private fun setupViewAnnotationManager() {
+        viewAnnotationManager = mapView.viewAnnotationManager
+    }
+
+    private fun setupMapClickListener() {
+        mapView.mapboxMap.addOnMapClickListener { point ->
+            handleMapClick(point)
+            true
+        }
+    }
+
+    private fun addMapImages() {
+        for ((drawableRes, id) in resourcesAndIds) {
+            BitmapUtils.bitmapFromDrawableRes(requireContext(), drawableRes)
+                ?.let { bitmap ->
+                    mapView.mapboxMap.style?.addImage(id, bitmap, true)
+                }
+        }
+    }
+
+    private fun addClusteredGeoJsonSource(style: Style, geoJsonString: String) {
+        if (geoJsonString.isNotEmpty()) {
+            style.addSource(
+                geoJsonSource(GEOJSON_SOURCE_ID) {
+                    data(geoJsonString)
+                    cluster(true)
+                    maxzoom(14)
+                    clusterRadius(50)
+                }
+            )
+            addMapLayers(style)
+        } else {
+            Log.e(TAG, "GeoJSON data is empty")
+        }
+    }
 
     private fun addMapLayers(style: Style) {
         style.addLayer(
@@ -153,13 +168,11 @@ class MapFragment : Fragment() {
                 iconSize(literal(1))
             }
         )
-
         val layers = arrayOf(
             intArrayOf(150, ContextCompat.getColor(requireContext(), R.color.red)),
             intArrayOf(20, ContextCompat.getColor(requireContext(), R.color.green)),
             intArrayOf(0, ContextCompat.getColor(requireContext(), R.color.blue))
         )
-
         style.addLayer(
             circleLayer("clusters", GEOJSON_SOURCE_ID) {
                 circleColor(
@@ -167,12 +180,8 @@ class MapFragment : Fragment() {
                         input = get("point_count"),
                         output = literal(ColorUtils.colorToRgbaString(layers[2][1])),
                         stops = arrayOf(
-                            literal(layers[1][0].toDouble()) to literal(
-                                ColorUtils.colorToRgbaString(layers[1][1])
-                            ),
-                            literal(layers[0][0].toDouble()) to literal(
-                                ColorUtils.colorToRgbaString(layers[0][1])
-                            )
+                            literal(layers[1][0].toDouble()) to literal(ColorUtils.colorToRgbaString(layers[1][1])),
+                            literal(layers[0][0].toDouble()) to literal(ColorUtils.colorToRgbaString(layers[0][1]))
                         )
                     )
                 )
@@ -185,9 +194,7 @@ class MapFragment : Fragment() {
             symbolLayer("count", GEOJSON_SOURCE_ID) {
                 textField(format {
                     formatSection(
-                        com.mapbox.maps.extension.style.expressions.dsl.generated.toString {
-                            get { literal("point_count") }
-                        }
+                        com.mapbox.maps.extension.style.expressions.dsl.generated.toString { get { literal("point_count") } }
                     )
                 })
                 textSize(12.0)
@@ -198,29 +205,8 @@ class MapFragment : Fragment() {
         )
     }
 
-    private fun showCustomToast(message: String) {
-        val layoutInflater = layoutInflater
-        val layout: View = layoutInflater.inflate(
-            R.layout.custom_toast, requireView().findViewById(
-                R.id.custom_toast_container
-            ))
-
-        val textView: TextView = layout.findViewById(R.id.custom_toast_message)
-        textView.text = message
-
-        // TODO 'setter for view: View?' is deprecated.
-        with(Toast(requireContext())) {
-            duration = Toast.LENGTH_LONG
-            view = layout
-            setGravity(Gravity.CENTER, 0, 0)
-            show()
-        }
-    }
-
     private fun handleMapClick(point: Point) {
-        if (!::viewAnnotationManager.isInitialized) {
-            return
-        }
+        if (!::viewAnnotationManager.isInitialized) return
 
         val screenPoint = mapView.mapboxMap.pixelForCoordinate(point)
         viewAnnotationManager.removeAllViewAnnotations()
@@ -257,6 +243,7 @@ class MapFragment : Fragment() {
             )
         }
     }
+
     private fun handleUnclusteredPointClick(values: Feature) {
         (values.geometry() as? Point)?.let { coordinates ->
             val viewAnnotation = viewAnnotationManager.addViewAnnotation(
@@ -293,23 +280,22 @@ class MapFragment : Fragment() {
     private fun markWorkoutButtonClick(values: Feature) {
         val properties =
             Gson().fromJson(values.properties().toString(), PlaceMapMarkerModel::class.java)
-        val user_id = encryptedSharedPreferences.getInt("user_id", -1)
+        val userId = encryptedSharedPreferences.getInt("user_id", -1)
 
         val createWorkoutFragment = CreateWorkoutFragment.newInstance(
             properties.name_fi,
             properties.katuosoite,
             properties.liikuntapaikkatyyppi,
             properties.place_id,
-            user_id
+            userId
         )
         createWorkoutFragment.show(parentFragmentManager, "createWorkoutFragment")
     }
 
-
-
     companion object {
         private const val GEOJSON_SOURCE_ID = "places"
         private const val PIN_ID = "pin-icon-id"
+        private const val TAG = "MapFragment"
     }
 
     private val resourcesAndIds = arrayOf(
