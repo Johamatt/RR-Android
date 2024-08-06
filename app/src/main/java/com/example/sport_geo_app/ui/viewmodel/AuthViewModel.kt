@@ -1,9 +1,12 @@
-package com.example.sport_geo_app.data.network.auth
+package com.example.sport_geo_app.ui.viewmodel
 import android.content.SharedPreferences
+import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.sport_geo_app.data.model.AuthResponse
+import com.example.sport_geo_app.data.repository.AuthRepository
 import com.example.sport_geo_app.utils.Constants.JWT_TOKEN_KEY
 import com.example.sport_geo_app.utils.Constants.USER_EMAIL_KEY
 import com.example.sport_geo_app.utils.Constants.USER_ID_KEY
@@ -20,11 +23,11 @@ class AuthViewModel @Inject constructor(
 
 ) : ViewModel() {
 
-    private val _loginResult = MutableLiveData<Result<ResponseBody>>()
-    val loginResult: LiveData<Result<ResponseBody>> = _loginResult
+    private val _loginResult = MutableLiveData<Result<AuthResponse>>()
+    val loginResult: LiveData<Result<AuthResponse>> = _loginResult
 
-    private val _registerResult = MutableLiveData<Result<ResponseBody>>()
-    val registerResult: LiveData<Result<ResponseBody>> = _registerResult
+    private val _registerResult = MutableLiveData<Result<AuthResponse>>()
+    val registerResult: LiveData<Result<AuthResponse>> = _registerResult
 
     fun loginWithEmail(email: String, password: String) {
         viewModelScope.launch {
@@ -47,29 +50,21 @@ class AuthViewModel @Inject constructor(
         }
     }
 
-    fun saveUserData(userId: Int, jwtToken: String, userEmail: String) {
-        with(encryptedSharedPreferences.edit()) {
-            putInt(USER_ID_KEY, userId)
-            putString(USER_EMAIL_KEY, userEmail)
-            putString(JWT_TOKEN_KEY, jwtToken)
-            apply()
-        }
-    }
+    fun handleSuccessResponse(authResponse: AuthResponse) {
+        try {
+            val jwtToken = authResponse.jwtToken
+            val user = authResponse.user
+            val userId = user.user_id
+            val userEmail = user.email
 
-    fun handleSuccessResponse(responseBody: String?) {
-        responseBody?.let {
-            try {
-                val jsonObject = JSONObject(responseBody)
-                val userJson = jsonObject.getJSONObject("user")
-                val jwtToken = jsonObject.getString("jwtToken")
-                val userId = userJson.getInt("user_id")
-                val userEmail = userJson.getString("email")
-
-                saveUserData(userId, jwtToken, userEmail)
-            } catch (e: Exception) {
-                e.printStackTrace()
-                // Handle the exception properly
+            with(encryptedSharedPreferences.edit()) {
+                putInt(USER_ID_KEY, userId)
+                putString(USER_EMAIL_KEY, userEmail)
+                putString(JWT_TOKEN_KEY, jwtToken)
+                apply()
             }
+        } catch (e: Exception) {
+            e.printStackTrace()
         }
     }
 }

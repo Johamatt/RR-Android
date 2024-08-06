@@ -1,4 +1,4 @@
-package com.example.sport_geo_app.data.network.utils
+package com.example.sport_geo_app.data.source
 
 import okhttp3.Interceptor
 import okhttp3.Response

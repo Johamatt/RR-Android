@@ -1,5 +1,6 @@
-package com.example.sport_geo_app.data.network.workouts
+package com.example.sport_geo_app.data.repository
 import android.util.Log
+import com.example.sport_geo_app.data.source.WorkoutInterface
 import okhttp3.RequestBody
 import okhttp3.ResponseBody
 import okhttp3.ResponseBody.Companion.toResponseBody

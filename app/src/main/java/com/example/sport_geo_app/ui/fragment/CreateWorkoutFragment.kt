@@ -14,7 +14,7 @@ import android.widget.TextView
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.viewModels
 import com.example.sport_geo_app.R
-import com.example.sport_geo_app.data.network.workouts.WorkoutViewModel
+import com.example.sport_geo_app.ui.viewmodel.WorkoutViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.RequestBody.Companion.toRequestBody

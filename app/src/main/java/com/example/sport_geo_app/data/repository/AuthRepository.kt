@@ -1,18 +1,23 @@
-package com.example.sport_geo_app.data.network.auth
+package com.example.sport_geo_app.data.repository
 
-import android.content.Context
-import dagger.hilt.android.qualifiers.ApplicationContext
+import com.example.sport_geo_app.data.source.AuthInterface
 import okhttp3.ResponseBody
 import javax.inject.Inject
 import javax.inject.Singleton
 
+// AuthRepository.kt
+import com.example.sport_geo_app.data.model.AuthRequest
+import com.example.sport_geo_app.data.model.AuthResponse
+import com.example.sport_geo_app.data.model.GoogleAuthRequest
+
+
 @Singleton
 class AuthRepository @Inject constructor(
-    private val authInterface: AuthInterface,
+    private val authInterface: AuthInterface
 ) {
-    suspend fun loginWithEmail(email: String, password: String): Result<ResponseBody> {
+    suspend fun loginWithEmail(email: String, password: String): Result<AuthResponse> {
         return try {
-            val response = authInterface.loginWithEmail(email, password)
+            val response = authInterface.loginWithEmail(AuthRequest(email, password))
             if (response.isSuccessful) {
                 Result.success(response.body()!!)
             } else {
@@ -24,9 +29,9 @@ class AuthRepository @Inject constructor(
         }
     }
 
-    suspend fun loginWithGoogle(idToken: String): Result<ResponseBody> {
+    suspend fun loginWithGoogle(idToken: String): Result<AuthResponse> {
         return try {
-            val response = authInterface.loginWithGoogle(idToken)
+            val response = authInterface.loginWithGoogle(GoogleAuthRequest(idToken))
             if (response.isSuccessful) {
                 Result.success(response.body()!!)
             } else {
@@ -38,9 +43,9 @@ class AuthRepository @Inject constructor(
         }
     }
 
-    suspend fun registerUser(email: String, password: String): Result<ResponseBody> {
+    suspend fun registerUser(email: String, password: String): Result<AuthResponse> {
         return try {
-            val response = authInterface.registerUser(email, password)
+            val response = authInterface.registerUser(AuthRequest(email, password))
             if (response.isSuccessful) {
                 Result.success(response.body()!!)
             } else {
@@ -52,4 +57,5 @@ class AuthRepository @Inject constructor(
         }
     }
 }
+
 

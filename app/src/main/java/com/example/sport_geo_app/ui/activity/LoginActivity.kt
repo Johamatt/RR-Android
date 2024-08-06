@@ -14,7 +14,7 @@ import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import com.example.sport_geo_app.MainActivity
 import com.example.sport_geo_app.R
-import com.example.sport_geo_app.data.network.auth.AuthViewModel
+import com.example.sport_geo_app.ui.viewmodel.AuthViewModel
 import com.example.sport_geo_app.utils.Constants.USER_ID_KEY
 import com.example.sport_geo_app.utils.ErrorManager
 import com.google.android.gms.auth.api.signin.GoogleSignIn
@@ -56,12 +56,10 @@ class LoginActivity : AppCompatActivity() {
         }
 
         authViewModel.loginResult.observe(this) { result ->
-            result.onSuccess { responseBody ->
-                Log.d(TAG, responseBody.toString())
-                authViewModel.handleSuccessResponse(responseBody.string())
+            result.onSuccess { authResponse ->
+                authViewModel.handleSuccessResponse(authResponse)
                 navigateToMainActivity()
             }.onFailure { throwable ->
-                Log.d(TAG, throwable.toString())
                 errorManager.handleErrorResponse(throwable)
             }
         }

@@ -1,4 +1,4 @@
-package com.example.sport_geo_app.data.network.workouts
+package com.example.sport_geo_app.data.source
 
 import okhttp3.RequestBody
 import okhttp3.ResponseBody

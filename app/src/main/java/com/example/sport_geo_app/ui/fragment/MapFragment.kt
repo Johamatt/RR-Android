@@ -43,7 +43,7 @@ import com.google.gson.Gson
 import com.mapbox.geojson.Feature
 import android.Manifest
 import androidx.fragment.app.viewModels
-import com.example.sport_geo_app.data.network.map.GeoDataViewModel
+import com.example.sport_geo_app.ui.viewmodel.GeoDataViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 

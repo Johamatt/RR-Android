@@ -1,12 +1,12 @@
-package com.example.sport_geo_app.data.network
+package com.example.sport_geo_app.di
 
 import android.content.Context
 import android.content.SharedPreferences
 import com.example.sport_geo_app.R
-import com.example.sport_geo_app.data.network.auth.AuthInterface
-import com.example.sport_geo_app.data.network.map.GeoDataInterface
-import com.example.sport_geo_app.data.network.utils.AuthInterceptor
-import com.example.sport_geo_app.data.network.workouts.WorkoutInterface
+import com.example.sport_geo_app.data.source.AuthInterface
+import com.example.sport_geo_app.data.source.GeoDataInterface
+import com.example.sport_geo_app.data.source.AuthInterceptor
+import com.example.sport_geo_app.data.source.WorkoutInterface
 import com.example.sport_geo_app.utils.Constants.JWT_TOKEN_KEY
 import dagger.Module
 import dagger.Provides

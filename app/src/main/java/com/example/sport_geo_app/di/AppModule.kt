@@ -1,4 +1,4 @@
-package com.example.sport_geo_app.data
+package com.example.sport_geo_app.di
 
 import android.content.Context
 import android.content.SharedPreferences

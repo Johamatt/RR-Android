@@ -1,5 +1,6 @@
-package com.example.sport_geo_app.data.network.map
+package com.example.sport_geo_app.data.repository
 
+import com.example.sport_geo_app.data.source.GeoDataInterface
 import javax.inject.Inject
 import javax.inject.Singleton
 

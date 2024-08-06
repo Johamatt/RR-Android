@@ -5,5 +5,5 @@ object Constants {
     const val JWT_TOKEN_KEY = "jwtToken"
     const val USER_ID_KEY = "user_id"
     const val USER_EMAIL_KEY = "email"
-    const val PREFS_FILENAME = "encrypted_user_prefs"
+    const val PREFS_FILENAME = "encrypted_user_prefs5"
 }

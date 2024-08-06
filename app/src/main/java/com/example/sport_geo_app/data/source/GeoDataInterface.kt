@@ -1,4 +1,4 @@
-package com.example.sport_geo_app.data.network.map
+package com.example.sport_geo_app.data.source
 
 import okhttp3.ResponseBody
 import retrofit2.Response
