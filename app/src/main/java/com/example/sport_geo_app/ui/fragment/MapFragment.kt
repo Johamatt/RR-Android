@@ -38,11 +38,11 @@ import com.mapbox.maps.viewannotation.ViewAnnotationManager
 import com.mapbox.maps.viewannotation.geometry
 import com.mapbox.maps.viewannotation.viewAnnotationOptions
 import com.example.sport_geo_app.R
-import com.example.sport_geo_app.data.model.PlaceMapMarkerModel
 import com.google.gson.Gson
 import com.mapbox.geojson.Feature
 import android.Manifest
 import androidx.fragment.app.viewModels
+import com.example.sport_geo_app.data.model.PointPin
 import com.example.sport_geo_app.ui.viewmodel.GeoDataViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
@@ -253,7 +253,7 @@ class MapFragment : Fragment() {
                 }
             )
 
-            val placeMarker = Gson().fromJson(values.properties().toString(), PlaceMapMarkerModel::class.java)
+            val placeMarker = Gson().fromJson(values.properties().toString(), PointPin::class.java)
             val name = placeMarker.name_fi
             val address = placeMarker.katuosoite
             val type = placeMarker.liikuntapaikkatyyppi
@@ -278,19 +278,25 @@ class MapFragment : Fragment() {
     }
 
     private fun markWorkoutButtonClick(values: Feature) {
-        val properties =
-            Gson().fromJson(values.properties().toString(), PlaceMapMarkerModel::class.java)
-        val userId = encryptedSharedPreferences.getInt("user_id", -1)
+        val name = values.properties()?.get("name_fi")?.asString ?: "Default Name"
+        val coordinatesPoint = values.geometry() as? Point
 
+        if (coordinatesPoint == null) {
+            Log.e("markWorkoutButtonClick", "Invalid or missing coordinates in feature geometry")
+            return
+        }
+        val userId = encryptedSharedPreferences.getInt("user_id", -1)
+        val coordinatesJson = coordinatesPoint.toJson()
         val createWorkoutFragment = CreateWorkoutFragment.newInstance(
-            properties.name_fi,
-            properties.katuosoite,
-            properties.liikuntapaikkatyyppi,
-            properties.place_id,
+            name,
+            coordinatesJson,
             userId
         )
         createWorkoutFragment.show(parentFragmentManager, "createWorkoutFragment")
     }
+
+
+
 
     companion object {
         private const val GEOJSON_SOURCE_ID = "places"
