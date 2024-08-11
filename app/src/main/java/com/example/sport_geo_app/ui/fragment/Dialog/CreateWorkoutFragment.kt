@@ -1,4 +1,4 @@
-package com.example.sport_geo_app.ui.fragment
+package com.example.sport_geo_app.ui.fragment.Dialog
 
 import android.os.Bundle
 import android.util.Log
@@ -20,14 +20,14 @@ import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.RequestBody.Companion.toRequestBody
 
 @AndroidEntryPoint
-class CreateWorkoutFragment : DialogFragment() {
+class CreateWorkoutDialogFragment : DialogFragment() {
     private var name: String? = null
     private var duration: String? = null
     private var sport: String? = null
     private var userId: Int = 0
     private var coordinates: Point? = null
     private val workOutViewModel: WorkoutViewModel by viewModels()
-    private val TAG = "CreateWorkoutFragment"
+    private val TAG = "CreateWorkoutDialogFragment"
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -115,7 +115,7 @@ class CreateWorkoutFragment : DialogFragment() {
 
         @JvmStatic
         fun newInstance(name: String, coordinatesJson: String, userId: Int) =
-            CreateWorkoutFragment().apply {
+            CreateWorkoutDialogFragment().apply {
                 arguments = Bundle().apply {
                     putString(ARG_NAME, name)
                     putString(ARG_COORDINATES, coordinatesJson)

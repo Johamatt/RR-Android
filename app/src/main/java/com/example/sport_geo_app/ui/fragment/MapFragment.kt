@@ -43,6 +43,7 @@ import com.mapbox.geojson.Feature
 import android.Manifest
 import androidx.fragment.app.viewModels
 import com.example.sport_geo_app.data.model.PointPin
+import com.example.sport_geo_app.ui.fragment.Dialog.InfoFragment
 import com.example.sport_geo_app.ui.viewmodel.GeoDataViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
@@ -262,9 +263,7 @@ class MapFragment : Fragment() {
                 findViewById<TextView>(R.id.point_name).text = name
                 findViewById<TextView>(R.id.point_address).text = address
                 findViewById<TextView>(R.id.point_type).text = type
-                findViewById<Button>(R.id.mark_workout_button).setOnClickListener {
-                    markWorkoutButtonClick(values)
-                }
+
                 findViewById<Button>(R.id.info_button).setOnClickListener {
                     handleInfoButtonClick(name, address, type)
                 }
@@ -276,27 +275,6 @@ class MapFragment : Fragment() {
         val infoFragment = InfoFragment.newInstance(name, address, type)
         infoFragment.show(parentFragmentManager, "infoFragment")
     }
-
-    private fun markWorkoutButtonClick(values: Feature) {
-        val name = values.properties()?.get("name_fi")?.asString ?: "Default Name"
-        val coordinatesPoint = values.geometry() as? Point
-
-        if (coordinatesPoint == null) {
-            Log.e("markWorkoutButtonClick", "Invalid or missing coordinates in feature geometry")
-            return
-        }
-        val userId = encryptedSharedPreferences.getInt("user_id", -1)
-        val coordinatesJson = coordinatesPoint.toJson()
-        val createWorkoutFragment = CreateWorkoutFragment.newInstance(
-            name,
-            coordinatesJson,
-            userId
-        )
-        createWorkoutFragment.show(parentFragmentManager, "createWorkoutFragment")
-    }
-
-
-
 
     companion object {
         private const val GEOJSON_SOURCE_ID = "places"

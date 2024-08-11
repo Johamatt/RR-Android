@@ -7,6 +7,7 @@ import com.example.sport_geo_app.ui.fragment.HomeFragment
 import com.example.sport_geo_app.ui.fragment.MapFragment
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import android.content.SharedPreferences
+import com.example.sport_geo_app.ui.fragment.RecordWorkoutFragment
 import com.example.sport_geo_app.ui.fragment.WorkoutsFragment
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
@@ -36,6 +37,10 @@ class MainActivity : AppCompatActivity() {
                 }
                 R.id.bottom_workouts -> {
                     openFragment(WorkoutsFragment())
+                    true
+                }
+                R.id.bottom_recordWorkout -> {
+                    openFragment(RecordWorkoutFragment())
                     true
                 }
                 else -> false

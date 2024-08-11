@@ -1,4 +1,4 @@
-package com.example.sport_geo_app.ui.fragment
+package com.example.sport_geo_app.ui.fragment.Dialog
 
 import android.app.Dialog
 import android.os.Bundle
