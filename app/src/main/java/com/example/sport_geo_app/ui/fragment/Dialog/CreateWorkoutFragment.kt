@@ -1,5 +1,6 @@
 package com.example.sport_geo_app.ui.fragment.Dialog
 
+import android.content.SharedPreferences
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -13,30 +14,37 @@ import androidx.fragment.app.viewModels
 import com.example.sport_geo_app.R
 import com.example.sport_geo_app.data.model.WorkoutCreate
 import com.example.sport_geo_app.ui.viewmodel.WorkoutViewModel
+import com.example.sport_geo_app.utils.Constants.USER_ID_KEY
 import com.google.gson.Gson
-import com.mapbox.geojson.Point
+import com.google.gson.JsonArray
+import com.google.gson.JsonObject
+import com.mapbox.geojson.LineString
 import dagger.hilt.android.AndroidEntryPoint
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.RequestBody.Companion.toRequestBody
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class CreateWorkoutDialogFragment : DialogFragment() {
     private var name: String? = null
-    private var duration: String? = null
+    private var time: String = ""
+    private var distanceMeters: Float = 0.0F
     private var sport: String? = null
-    private var userId: Int = 0
-    private var coordinates: Point? = null
+    private var linestring: LineString? = null
     private val workOutViewModel: WorkoutViewModel by viewModels()
     private val TAG = "CreateWorkoutDialogFragment"
+    private val gson = Gson()
+    @Inject
+    lateinit var encryptedSharedPreferences: SharedPreferences
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         arguments?.let {
-            name = it.getString(ARG_NAME)
-            userId = it.getInt(ARG_USER_ID)
-            val coordinatesJson = it.getString(ARG_COORDINATES)
-            coordinates = coordinatesJson?.let { json ->
-                Point.fromJson(json)
+            time = it.getString(ARG_TIME).toString()
+            distanceMeters = it.getFloat(ARG_DISTANCE_TRAVELLED)
+            val coordinatesJson = it.getString(ARG_LINESTRING)
+            linestring = coordinatesJson?.let { json ->
+                LineString.fromJson(json)
             }
         }
     }
@@ -50,7 +58,7 @@ class CreateWorkoutDialogFragment : DialogFragment() {
                 dismiss()
             }.onFailure { throwable ->
                 Log.d(TAG, throwable.toString())
-                // TODO errormanager
+                // TODO: Handle error
             }
         }
     }
@@ -61,18 +69,18 @@ class CreateWorkoutDialogFragment : DialogFragment() {
     ): View? {
         return inflater.inflate(R.layout.fragment_createworkout, container, false).apply {
             findViewById<TextView>(R.id.workout_name).text = name
-            findViewById<TextView>(R.id.workout_duration).text = duration
             findViewById<TextView>(R.id.workout_sport).text = sport
+            findViewById<TextView>(R.id.workout_distanceTravelled).text = String.format("%.2f km", distanceMeters)
+            findViewById<TextView>(R.id.workout_time).text = time
             findViewById<Button>(R.id.save_button).setOnClickListener {
                 val name = findViewById<TextView>(R.id.workout_name).text.toString()
-                val duration = findViewById<EditText>(R.id.workout_duration).text.toString()
                 val sport = findViewById<EditText>(R.id.workout_sport).text.toString()
                 saveWorkoutDetails(
-                    userId,
                     name,
-                    duration,
+                    time,
+                    distanceMeters,
                     sport,
-                    coordinates
+                    linestring
                 )
             }
             findViewById<Button>(R.id.cancel_button).setOnClickListener {
@@ -82,20 +90,39 @@ class CreateWorkoutDialogFragment : DialogFragment() {
     }
 
     private fun saveWorkoutDetails(
-        userId: Int,
         name: String,
-        duration: String,
+        time: String,
+        distanceMeters: Float,
         sport: String,
-        coordinates: Point?
+        lineString: LineString?
     ) {
-        val gson = Gson()
+
+
+        val userId = encryptedSharedPreferences.getInt(USER_ID_KEY, -1)
+
+        // Create JSON object for LineString
+        val lineStringJson = JsonObject().apply {
+            addProperty("TYPE", "LineString")
+            add("coordinates", lineString?.let {
+                val coordinatesArray = JsonArray()
+                it.coordinates().forEach { point ->
+                    val coordinatePair = JsonArray().apply {
+                        add(point.longitude())
+                        add(point.latitude())
+                    }
+                    coordinatesArray.add(coordinatePair)
+                }
+                coordinatesArray
+            })
+        }
 
         val workoutRequest = WorkoutCreate(
             userId = userId,
             name = name,
-            duration = duration,
+            time = time,
+            distanceMeters = distanceMeters,
             sport = sport,
-            pointCoordinates = coordinates
+            linestring_coordinates = lineStringJson
         )
 
         val jsonRequest = gson.toJson(workoutRequest)
@@ -104,22 +131,23 @@ class CreateWorkoutDialogFragment : DialogFragment() {
         workOutViewModel.createWorkOut(requestBody)
     }
 
+
     private fun showCustomToast(message: String) {
-        //TODO
+        // TODO
     }
 
     companion object {
-        private const val ARG_NAME = "name"
-        private const val ARG_USER_ID = "user_id"
-        private const val ARG_COORDINATES = "coordinates"
+        private const val ARG_LINESTRING = "linestring"
+        private const val ARG_TIME = "time"
+        private const val ARG_DISTANCE_TRAVELLED = "distanceTravelled"
 
         @JvmStatic
-        fun newInstance(name: String, coordinatesJson: String, userId: Int) =
+        fun newInstance(time: String, distanceTravelled: Float, lineString: LineString) =
             CreateWorkoutDialogFragment().apply {
                 arguments = Bundle().apply {
-                    putString(ARG_NAME, name)
-                    putString(ARG_COORDINATES, coordinatesJson)
-                    putInt(ARG_USER_ID, userId)
+                    putString(ARG_TIME, time)
+                    putFloat(ARG_DISTANCE_TRAVELLED, distanceTravelled)
+                    putString(ARG_LINESTRING, lineString.toJson()) // Add LineString to arguments
                 }
             }
     }

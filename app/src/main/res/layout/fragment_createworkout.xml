@@ -9,19 +9,25 @@
         android:layout_height="wrap_content"
         android:orientation="vertical">
 
+        <TextView
+            android:id="@+id/workout_time"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="number" />
+
+        <TextView
+            android:id="@+id/workout_distanceTravelled"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="number" />
+
+
         <EditText
             android:id="@+id/workout_name"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Place Name"
+            android:hint="Name"
             android:textSize="18sp" />
-
-        <EditText
-            android:id="@+id/workout_duration"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:hint="Duration (minutes)"
-            android:inputType="number" />
 
         <EditText
             android:id="@+id/workout_sport"

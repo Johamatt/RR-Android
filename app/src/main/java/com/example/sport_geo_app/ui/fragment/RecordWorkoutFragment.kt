@@ -4,7 +4,6 @@ import android.Manifest
 import android.content.pm.PackageManager
 import android.location.Location
 import android.os.Bundle
-import android.os.Handler
 import android.os.Looper
 import android.util.Log
 import android.view.LayoutInflater
@@ -12,16 +11,20 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
 import android.widget.TextView
-import androidx.activity.result.ActivityResultLauncher
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.app.ActivityCompat
 import com.google.android.gms.location.*
 import com.example.sport_geo_app.R
+import com.example.sport_geo_app.ui.fragment.Dialog.CreateWorkoutDialogFragment
+import android.os.SystemClock
+import android.widget.Chronometer
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.contract.ActivityResultContracts
 import com.example.sport_geo_app.utils.LocationListener
+import com.mapbox.geojson.LineString
+import com.mapbox.geojson.Point
 import com.mapbox.maps.CameraOptions
 import com.mapbox.maps.MapView
 import com.mapbox.maps.Style
-import java.util.concurrent.TimeUnit
 
 class RecordWorkoutFragment : Fragment() {
 
@@ -32,19 +35,22 @@ class RecordWorkoutFragment : Fragment() {
     private lateinit var resumeButton: Button
     private lateinit var distanceTextView: TextView
     private lateinit var speedTextView: TextView
-    private lateinit var timeTextView: TextView
-    private lateinit var mapView: MapView
-    private lateinit var locationListener: LocationListener
-    private lateinit var requestPermissionLauncher: ActivityResultLauncher<Array<String>>
-
-    private var distanceTravelled = 0.0f
-    private var startTime: Long = 0
-    private var pausedTime: Long = 0
+    private lateinit var chronometer: Chronometer
     private lateinit var fusedLocationClient: FusedLocationProviderClient
     private lateinit var locationCallback: LocationCallback
+    private lateinit var locationListener: LocationListener
+    private lateinit var mapView: MapView
+    private lateinit var requestPermissionLauncher: ActivityResultLauncher<Array<String>>
+    private var lastLocation: Location? = null
 
-    private val handler = Handler(Looper.getMainLooper())
-    private var updateTimeRunnable: Runnable? = null
+
+
+    private var distanceTravelled = 0.0f
+    private var isRunning = false
+    private var isPaused = false
+    private var pausedTime: Long = 0
+    private val locationList = mutableListOf<Point>()
+
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -53,35 +59,12 @@ class RecordWorkoutFragment : Fragment() {
         val view = inflater.inflate(R.layout.fragment_record_workout, container, false)
         initializeUI(view)
         setupButtonListeners()
+        setupPermissions()
 
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(requireActivity())
 
-
         updateButtonVisibility(startVisible = true)
         return view
-    }
-
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-        setupPermissions()
-    }
-
-    private fun initializeUI(view: View) {
-        mapView = view.findViewById(R.id.mapView)
-        startButton = view.findViewById(R.id.buttonStart)
-        stopButton = view.findViewById(R.id.buttonStop)
-        finishButton = view.findViewById(R.id.buttonFinish)
-        resumeButton = view.findViewById(R.id.buttonResume)
-        distanceTextView = view.findViewById(R.id.textViewDistance)
-        speedTextView = view.findViewById(R.id.textViewSpeed)
-        timeTextView = view.findViewById(R.id.textViewTime)
-    }
-
-    private fun setupButtonListeners() {
-        startButton.setOnClickListener { startRecording() }
-        stopButton.setOnClickListener { stopRecording() }
-        resumeButton.setOnClickListener { resumeRecording() }
-        finishButton.setOnClickListener { finishRecording() }
     }
 
     private fun setupPermissions() {
@@ -117,12 +100,34 @@ class RecordWorkoutFragment : Fragment() {
         }
     }
 
+
+    private fun initializeUI(view: View) {
+        mapView = view.findViewById(R.id.mapView)
+        startButton = view.findViewById(R.id.buttonStart)
+        stopButton = view.findViewById(R.id.buttonStop)
+        finishButton = view.findViewById(R.id.buttonFinish)
+        resumeButton = view.findViewById(R.id.buttonResume)
+        distanceTextView = view.findViewById(R.id.textViewDistance)
+        speedTextView = view.findViewById(R.id.textViewSpeed)
+        chronometer = view.findViewById(R.id.chronometer)
+
+    }
+
+    private fun setupButtonListeners() {
+        startButton.setOnClickListener { startRecording() }
+        stopButton.setOnClickListener { stopRecording() }
+        resumeButton.setOnClickListener { resumeRecording() }
+        finishButton.setOnClickListener { finishRecording() }
+    }
+
     private fun startRecording() {
         updateButtonVisibility(stopVisible = true)
         distanceTravelled = 0.0f
-        startTime = System.currentTimeMillis() - pausedTime
+        chronometer.base = SystemClock.elapsedRealtime() - pausedTime
+        chronometer.start()
+        isRunning = true
+        isPaused = false
 
-        startElapsedTimeUpdate()
         if (!hasLocationPermissions()) return
 
         val locationRequest = createLocationRequest()
@@ -133,17 +138,25 @@ class RecordWorkoutFragment : Fragment() {
         updateButtonVisibility(finishVisible = true, resumeVisible = true)
         stopLocationUpdates()
 
-        stopElapsedTimeUpdate()
-        pausedTime = System.currentTimeMillis() - startTime
+        if (isRunning) {
+            chronometer.stop()
+            pausedTime = SystemClock.elapsedRealtime() - chronometer.base
+            isRunning = false
+        }
+        isPaused = true
 
         updateSpeed()
     }
 
     private fun resumeRecording() {
         updateButtonVisibility(stopVisible = true)
-        startTime = System.currentTimeMillis() - pausedTime
+        if (isPaused) {
+            chronometer.base = SystemClock.elapsedRealtime() - pausedTime
+            chronometer.start()
+            isRunning = true
+            isPaused = false
+        }
 
-        startElapsedTimeUpdate()
         if (!hasLocationPermissions()) return
 
         val locationRequest = createLocationRequest()
@@ -152,7 +165,26 @@ class RecordWorkoutFragment : Fragment() {
 
     private fun finishRecording() {
         updateButtonVisibility(startVisible = true)
-        stopElapsedTimeUpdate()
+        if (isRunning) {
+            chronometer.stop()
+            pausedTime = SystemClock.elapsedRealtime() - chronometer.base
+            isRunning = false
+        }
+
+        val elapsedTimeMillis = SystemClock.elapsedRealtime() - chronometer.base
+        val elapsedTimeSeconds = elapsedTimeMillis / 1000
+        val hours = (elapsedTimeSeconds / 3600).toInt()
+        val minutes = ((elapsedTimeSeconds % 3600) / 60).toInt()
+        val seconds = (elapsedTimeSeconds % 60).toInt()
+
+        val formattedTime = String.format("%02d:%02d:%02d", hours, minutes, seconds)
+
+        // Create a LineString GeoJSON
+        val lineString = LineString.fromLngLats(locationList)
+
+        val createWorkoutDialogFragment = CreateWorkoutDialogFragment.newInstance(formattedTime, distanceTravelled, lineString)
+        createWorkoutDialogFragment.show(parentFragmentManager, "CreateWorkoutDialogFragment")
+
         resetWorkoutData()
     }
 
@@ -201,42 +233,32 @@ class RecordWorkoutFragment : Fragment() {
     }
 
     private fun updateLocation(location: Location) {
-        distanceTravelled += location.distanceTo(location)
+        if (lastLocation != null) {
+            distanceTravelled += lastLocation!!.distanceTo(location)
+        }
+        lastLocation = location
+        val point = Point.fromLngLat(location.longitude, location.latitude)
+        locationList.add(point)
+
         distanceTextView.text = String.format("Distance: %.2f m", distanceTravelled)
         updateSpeed()
     }
 
     private fun updateSpeed() {
-        val elapsedTime = System.currentTimeMillis() - startTime
-        val avgSpeed = if (elapsedTime > 0) distanceTravelled / (elapsedTime / 1000.0) else 0.0
-        speedTextView.text = String.format("Avg Speed: %.2f m/s", avgSpeed)
-    }
-
-    private fun startElapsedTimeUpdate() {
-        updateTimeRunnable = object : Runnable {
-            override fun run() {
-                val elapsedTime = System.currentTimeMillis() - startTime
-                val minutes = TimeUnit.MILLISECONDS.toMinutes(elapsedTime)
-                val seconds = TimeUnit.MILLISECONDS.toSeconds(elapsedTime) % 60
-                val milliseconds = (elapsedTime % 1000) / 10
-                timeTextView.text = String.format("Elapsed Time: %02d:%02d.%02d", minutes, seconds, milliseconds)
-                handler.postDelayed(this, 10)
-            }
+        val elapsedTime = (SystemClock.elapsedRealtime() - chronometer.base) / 1000.0
+        val avgSpeed = if (elapsedTime > 0) distanceTravelled / elapsedTime else 0.0
+        speedTextView.post {
+            speedTextView.text = String.format("Avg Speed: %.2f m/s", avgSpeed)
         }
-        handler.post(updateTimeRunnable!!)
-    }
-
-    private fun stopElapsedTimeUpdate() {
-        updateTimeRunnable?.let { handler.removeCallbacks(it) }
-        updateTimeRunnable = null
     }
 
     private fun resetWorkoutData() {
         pausedTime = 0
         distanceTravelled = 0.0f
-        distanceTextView.text = "Distance: 0.00 m"
+        distanceTextView.text = "Distance: 0.00 km"
         speedTextView.text = "Avg Speed: 0.00 m/s"
-        timeTextView.text = "Elapsed Time: 00:00.00"
+        chronometer.base = SystemClock.elapsedRealtime()
+        chronometer.stop()
     }
 
     private fun updateButtonVisibility(

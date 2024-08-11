@@ -35,12 +35,12 @@
             android:text="Avg Speed: 0.0 m/s"
             android:layout_gravity="center" />
 
-        <TextView
-            android:id="@+id/textViewTime"
+        <Chronometer
+            android:id="@+id/chronometer"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Elapsed Time: 00:00.00"
-            android:layout_gravity="center" />
+            android:format="Time: %s" />
+
         <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -73,6 +73,8 @@
                 android:layout_height="wrap_content"
                 android:text="Finish"
                 android:layout_marginLeft="20dp" />
+
+
 
 
         </LinearLayout>

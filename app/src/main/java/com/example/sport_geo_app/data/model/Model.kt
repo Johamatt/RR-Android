@@ -1,5 +1,7 @@
 package com.example.sport_geo_app.data.model
 
+import com.google.gson.JsonArray
+import com.google.gson.JsonObject
 import com.google.gson.annotations.SerializedName
 import com.mapbox.geojson.LineString
 import com.mapbox.geojson.Point
@@ -17,9 +19,10 @@ data class Workout(
 data class WorkoutCreate(
     @SerializedName("user_id") val userId: Int,
     @SerializedName("name") val name: String,
-    @SerializedName("duration") val duration: String,
+    @SerializedName("time") val time: String,
+    @SerializedName("distanceMeters") val distanceMeters: Float,
     @SerializedName("sport") val sport: String,
-    @SerializedName("point_coordinates") val pointCoordinates: Point?,
+    @SerializedName("linestring_coordinates") val linestring_coordinates:  JsonObject?,
 )
 
 data class PointPin(
