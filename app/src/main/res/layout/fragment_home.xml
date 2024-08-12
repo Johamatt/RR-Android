@@ -13,7 +13,7 @@
         android:id="@+id/load_ad_btn"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Watch Ad for Reward" />
+        android:text="Ad test" />
 
     <TextView
         android:id="@+id/user_id_text_view"

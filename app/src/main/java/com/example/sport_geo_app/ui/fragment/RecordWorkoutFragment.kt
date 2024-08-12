@@ -43,8 +43,6 @@ class RecordWorkoutFragment : Fragment() {
     private lateinit var requestPermissionLauncher: ActivityResultLauncher<Array<String>>
     private var lastLocation: Location? = null
 
-
-
     private var distanceTravelled = 0.0f
     private var isRunning = false
     private var isPaused = false
@@ -136,7 +134,7 @@ class RecordWorkoutFragment : Fragment() {
 
     private fun stopRecording() {
         updateButtonVisibility(finishVisible = true, resumeVisible = true)
-        stopLocationUpdates()
+        fusedLocationClient.removeLocationUpdates(locationCallback)
 
         if (isRunning) {
             chronometer.stop()
@@ -216,7 +214,6 @@ class RecordWorkoutFragment : Fragment() {
                 }
             }
         }
-
         try {
             fusedLocationClient.requestLocationUpdates(
                 locationRequest,
@@ -226,10 +223,6 @@ class RecordWorkoutFragment : Fragment() {
         } catch (e: SecurityException) {
             Log.d(TAG, e.toString())
         }
-    }
-
-    private fun stopLocationUpdates() {
-        fusedLocationClient.removeLocationUpdates(locationCallback)
     }
 
     private fun updateLocation(location: Location) {

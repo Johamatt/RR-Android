@@ -43,6 +43,7 @@ import com.mapbox.geojson.Feature
 import android.Manifest
 import androidx.fragment.app.viewModels
 import com.example.sport_geo_app.data.model.PointPin
+import com.example.sport_geo_app.ui.fragment.Dialog.BottomSheetFragment
 import com.example.sport_geo_app.ui.fragment.Dialog.InfoFragment
 import com.example.sport_geo_app.ui.viewmodel.GeoDataViewModel
 import dagger.hilt.android.AndroidEntryPoint
@@ -57,6 +58,7 @@ class MapFragment : Fragment() {
     private lateinit var requestPermissionLauncher: ActivityResultLauncher<Array<String>>
 
 
+
     @Inject
     lateinit var encryptedSharedPreferences: SharedPreferences
 
@@ -67,8 +69,15 @@ class MapFragment : Fragment() {
     ): View? {
         return inflater.inflate(R.layout.fragment_map, container, false).apply {
             mapView = findViewById(R.id.mapView)
+            val button1: View = findViewById(R.id.button1)
+            button1.setOnClickListener {
+                val bottomSheetFragment = BottomSheetFragment()
+                bottomSheetFragment.show(parentFragmentManager, bottomSheetFragment.tag)
+            }
         }
     }
+
+    // TODO initialize buttonclicks here later
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
