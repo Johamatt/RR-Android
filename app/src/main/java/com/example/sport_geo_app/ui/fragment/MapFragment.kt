@@ -41,6 +41,7 @@ import com.example.sport_geo_app.R
 import com.google.gson.Gson
 import com.mapbox.geojson.Feature
 import android.Manifest
+import android.widget.ImageButton
 import androidx.fragment.app.viewModels
 import com.example.sport_geo_app.data.model.PointPin
 import com.example.sport_geo_app.ui.fragment.Dialog.BottomSheetFragment
@@ -69,21 +70,45 @@ class MapFragment : Fragment() {
     ): View? {
         return inflater.inflate(R.layout.fragment_map, container, false).apply {
             mapView = findViewById(R.id.mapView)
-            val button1: View = findViewById(R.id.button1)
-            button1.setOnClickListener {
-                val bottomSheetFragment = BottomSheetFragment()
-                bottomSheetFragment.show(parentFragmentManager, bottomSheetFragment.tag)
-            }
+
         }
     }
 
-    // TODO initialize buttonclicks here later
+    private fun initializeButtonListeners(view: View) {
+        val button1: View = view.findViewById(R.id.button1)
+        button1.setOnClickListener {
+            val bottomSheetFragment = BottomSheetFragment()
+            bottomSheetFragment.show(parentFragmentManager, bottomSheetFragment.tag)
+        }
+
+        val locationButton: ImageButton = view.findViewById(R.id.locationButton)
+        locationButton.setOnClickListener {
+            moveToCurrentLocation()
+        }
+    }
+
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         setupPermissions()
         setupObservers()
+        initializeButtonListeners(view)
+
+
     }
+
+    private fun moveToCurrentLocation() {
+        val location = locationListener.getCurrentLocation()
+        if (location != null) {
+            val cameraPosition = CameraOptions.Builder()
+                .center(location)
+                .build()
+            mapView.mapboxMap.setCamera(cameraPosition)
+        } else {
+            // Handle the case where the current location is null
+        }
+    }
+
 
     private fun setupPermissions() {
         requestPermissionLauncher = registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { permissions ->
