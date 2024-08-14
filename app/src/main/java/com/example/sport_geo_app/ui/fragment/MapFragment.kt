@@ -41,12 +41,17 @@ import com.example.sport_geo_app.R
 import com.google.gson.Gson
 import com.mapbox.geojson.Feature
 import android.Manifest
+import android.content.Context
+import android.view.inputmethod.EditorInfo
+import android.view.inputmethod.InputMethodManager
+import android.widget.EditText
 import android.widget.ImageButton
 import androidx.fragment.app.viewModels
 import com.example.sport_geo_app.data.model.PointPin
 import com.example.sport_geo_app.ui.fragment.Dialog.BottomSheetFragment
 import com.example.sport_geo_app.ui.fragment.Dialog.InfoFragment
 import com.example.sport_geo_app.ui.viewmodel.GeoDataViewModel
+import com.mapbox.maps.extension.style.sources.getSource
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 
@@ -58,8 +63,6 @@ class MapFragment : Fragment() {
     private lateinit var locationListener: LocationListener
     private lateinit var requestPermissionLauncher: ActivityResultLauncher<Array<String>>
 
-
-
     @Inject
     lateinit var encryptedSharedPreferences: SharedPreferences
 
@@ -70,7 +73,6 @@ class MapFragment : Fragment() {
     ): View? {
         return inflater.inflate(R.layout.fragment_map, container, false).apply {
             mapView = findViewById(R.id.mapView)
-
         }
     }
 
@@ -87,14 +89,30 @@ class MapFragment : Fragment() {
         }
     }
 
-
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         setupPermissions()
         setupObservers()
         initializeButtonListeners(view)
 
+        val searchBar: EditText = view.findViewById(R.id.searchBar)
+        searchBar.setOnEditorActionListener { v, actionId, event ->
+            if (actionId == EditorInfo.IME_ACTION_SEARCH || actionId == EditorInfo.IME_ACTION_DONE) {
+                val searchString = v.text.toString()
+                if (searchString.length >= 2) {
+                    geoDataViewModel.searchGeoJson(searchString)
+                }
+                hideKeyboard()
+                true
+            } else {
+                false
+            }
+        }
+    }
 
+    private fun hideKeyboard() {
+        val imm = requireContext().getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+        imm.hideSoftInputFromWindow(requireView().windowToken, 0)
     }
 
     private fun moveToCurrentLocation() {
@@ -109,14 +127,13 @@ class MapFragment : Fragment() {
         }
     }
 
-
     private fun setupPermissions() {
         requestPermissionLauncher = registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { permissions ->
             val allPermissionsGranted = permissions.values.all { it }
             if (allPermissionsGranted) {
                 initializeMap()
             } else {
-                // Handle permissions not granted ym
+                // Handle permissions not granted
             }
         }
 
@@ -134,7 +151,7 @@ class MapFragment : Fragment() {
                 addClusteredGeoJsonSource(mapView.mapboxMap.style!!, geoJsonString)
             }.onFailure { throwable ->
                 Log.d(TAG, throwable.toString())
-                //TODO inject errormanager
+                // TODO inject errormanager
             }
         }
     }
@@ -181,23 +198,34 @@ class MapFragment : Fragment() {
 
     private fun addClusteredGeoJsonSource(style: Style, geoJsonString: String) {
         if (geoJsonString.isNotEmpty()) {
-            style.addSource(
-                geoJsonSource(GEOJSON_SOURCE_ID) {
-                    data(geoJsonString)
-                    cluster(true)
-                    maxzoom(14)
-                    clusterRadius(50)
-                }
-            )
+            val existingSource = style.getSource(GEOJSON_SOURCE_ID)
+            if (existingSource != null) {
+                style.removeStyleLayer(UNCLUSTERED_LAYER_ID)
+                style.removeStyleLayer(CLUSTER_LAYER_ID)
+                style.removeStyleLayer(COUNT_LAYER_ID)
+                style.removeStyleSource(GEOJSON_SOURCE_ID)
+            }
+                style.addSource(
+                    geoJsonSource(GEOJSON_SOURCE_ID) {
+                        data(geoJsonString)
+                        cluster(true)
+                        maxzoom(14)
+                        clusterRadius(50)
+                    }
+                )
             addMapLayers(style)
         } else {
             Log.e(TAG, "GeoJSON data is empty")
         }
     }
 
+
+
+
+
     private fun addMapLayers(style: Style) {
         style.addLayer(
-            symbolLayer("unclustered-points", GEOJSON_SOURCE_ID) {
+            symbolLayer(UNCLUSTERED_LAYER_ID, GEOJSON_SOURCE_ID) {
                 iconAllowOverlap(false)
                 iconImage(literal(PIN_ID))
                 iconSize(literal(1))
@@ -209,7 +237,7 @@ class MapFragment : Fragment() {
             intArrayOf(0, ContextCompat.getColor(requireContext(), R.color.blue))
         )
         style.addLayer(
-            circleLayer("clusters", GEOJSON_SOURCE_ID) {
+            circleLayer(CLUSTER_LAYER_ID, GEOJSON_SOURCE_ID) {
                 circleColor(
                     Expression.step(
                         input = get("point_count"),
@@ -226,7 +254,7 @@ class MapFragment : Fragment() {
         )
 
         style.addLayer(
-            symbolLayer("count", GEOJSON_SOURCE_ID) {
+            symbolLayer(COUNT_LAYER_ID, GEOJSON_SOURCE_ID) {
                 textField(format {
                     formatSection(
                         com.mapbox.maps.extension.style.expressions.dsl.generated.toString { get { literal("point_count") } }
@@ -248,15 +276,15 @@ class MapFragment : Fragment() {
 
         mapView.mapboxMap.queryRenderedFeatures(
             RenderedQueryGeometry(screenPoint),
-            RenderedQueryOptions(listOf("unclustered-points", "clusters"), null)
+            RenderedQueryOptions(listOf(UNCLUSTERED_LAYER_ID, CLUSTER_LAYER_ID), null)
         ) { features ->
             features.value?.firstOrNull()?.let { feature ->
                 val layer = feature.layers.getOrNull(0)
                 val values = feature.queriedFeature.feature
 
                 when (layer) {
-                    "clusters" -> handleClusterClick(values)
-                    "unclustered-points" -> handleUnclusteredPointClick(values)
+                    CLUSTER_LAYER_ID -> handleClusterClick(values)
+                    UNCLUSTERED_LAYER_ID -> handleUnclusteredPointClick(values)
                 }
             }
         }
@@ -311,7 +339,10 @@ class MapFragment : Fragment() {
     }
 
     companion object {
-        private const val GEOJSON_SOURCE_ID = "places"
+        private val GEOJSON_SOURCE_ID = "places"
+        private val COUNT_LAYER_ID = "count"
+        private val CLUSTER_LAYER_ID = "clusters"
+        private val UNCLUSTERED_LAYER_ID = "unclustered-points"
         private const val PIN_ID = "pin-icon-id"
         private const val TAG = "MapFragment"
     }

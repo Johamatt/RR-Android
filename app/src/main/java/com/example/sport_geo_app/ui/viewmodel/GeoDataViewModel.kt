@@ -22,4 +22,11 @@ class GeoDataViewModel @Inject constructor(
             _geoDataResults.value = result
         }
     }
+
+    fun searchGeoJson(search: String) {
+        viewModelScope.launch {
+            val result = geoDataRepository.searchGeoJson(search)
+            _geoDataResults.value = result
+        }
+    }
 }

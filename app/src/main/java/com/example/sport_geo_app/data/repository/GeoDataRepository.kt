@@ -20,4 +20,17 @@ class GeoDataRepository @Inject constructor(
             Result.failure(e)
         }
     }
+
+    suspend fun searchGeoJson(search: String): Result<String> {
+        return try {
+            val response = geoDataInterface.searchGeoJson(search)
+            if (response.isSuccessful) {
+                Result.success(response.body()?.string().orEmpty())
+            } else {
+                Result.failure(Throwable(response.errorBody()?.string() ?: response.message()))
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
 }
