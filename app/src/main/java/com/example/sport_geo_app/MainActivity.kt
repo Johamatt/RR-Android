@@ -3,12 +3,10 @@ package com.example.sport_geo_app
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
-import com.example.sport_geo_app.ui.fragment.HomeFragment
-import com.example.sport_geo_app.ui.fragment.MapFragment
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import android.content.SharedPreferences
-import com.example.sport_geo_app.ui.fragment.RecordWorkoutFragment
-import com.example.sport_geo_app.ui.fragment.WorkoutsFragment
+import androidx.activity.viewModels
+import com.example.sport_geo_app.ui.viewmodel.NavigationViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 
@@ -16,8 +14,10 @@ import javax.inject.Inject
 class MainActivity : AppCompatActivity() {
     private lateinit var bottomNavigationView: BottomNavigationView
 
-    @Inject lateinit var encryptedSharedPreferences: SharedPreferences
+    @Inject
+    lateinit var encryptedSharedPreferences: SharedPreferences
 
+    private val navigationViewModel: NavigationViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -26,25 +26,12 @@ class MainActivity : AppCompatActivity() {
         bottomNavigationView = findViewById(R.id.bottom_navigation)
 
         bottomNavigationView.setOnItemSelectedListener { menuItem ->
-            when (menuItem.itemId) {
-                R.id.bottom_home -> {
-                    openFragment(HomeFragment())
-                    true
-                }
-                R.id.bottom_map -> {
-                    openFragment(MapFragment())
-                    true
-                }
-                R.id.bottom_workouts -> {
-                    openFragment(WorkoutsFragment())
-                    true
-                }
-                R.id.bottom_recordWorkout -> {
-                    openFragment(RecordWorkoutFragment())
-                    true
-                }
-                else -> false
-            }
+            navigationViewModel.navigateTo(menuItem.itemId)
+            true
+        }
+
+        navigationViewModel.currentFragment.observe(this) { fragment ->
+            openFragment(fragment)
         }
 
         if (savedInstanceState == null) {
@@ -53,24 +40,16 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun openFragment(fragment: Fragment) {
-        val transaction = supportFragmentManager.beginTransaction()
         val fragmentTag = fragment.javaClass.simpleName
 
-        val existingFragment = supportFragmentManager.findFragmentByTag(fragmentTag)
-        if (existingFragment != null) {
-            transaction.show(existingFragment)
-        } else {
-            transaction.add(R.id.frame_container, fragment, fragmentTag)
+        val currentFragment = supportFragmentManager.findFragmentById(R.id.frame_container)
+
+        if (currentFragment != null && currentFragment.javaClass.simpleName == fragmentTag) {
+            return
         }
 
-        supportFragmentManager.fragments.forEach {
-            if (it != fragment && it.isVisible) {
-                transaction.hide(it)
-            }
-        }
-
-        transaction.addToBackStack(fragmentTag)
-        transaction.setReorderingAllowed(true)
-        transaction.commit()
+        supportFragmentManager.beginTransaction()
+            .replace(R.id.frame_container, fragment, fragmentTag)
+            .commit()
     }
 }
