@@ -3,6 +3,7 @@ package com.example.sport_geo_app.ui.activity
 import android.content.Intent
 import android.os.Bundle
 import android.widget.Button
+import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
@@ -23,7 +24,9 @@ class RegisterActivity : AppCompatActivity() {
 
     private lateinit var emailInput: TextInputEditText
     private lateinit var passwordInput: TextInputEditText
+    private lateinit var repeatPasswordInput: TextInputEditText
     private lateinit var registerBtn: Button
+    private lateinit var loginTextView: TextView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -34,7 +37,7 @@ class RegisterActivity : AppCompatActivity() {
         authViewModel.registerResult.observe(this) { result ->
             result.onSuccess { authResponse ->
                 authViewModel.handleSuccessResponse(authResponse)
-               navigateToMainActivity()
+                navigateToMainActivity()
             }.onFailure { throwable ->
                 errorManager.handleErrorResponse(throwable)
             }
@@ -43,17 +46,28 @@ class RegisterActivity : AppCompatActivity() {
     private fun initializeViews() {
         emailInput = findViewById(R.id.register_email_input)
         passwordInput = findViewById(R.id.register_password_input)
+        repeatPasswordInput = findViewById(R.id.register_repeat_password_input)
         registerBtn = findViewById(R.id.register_btn)
+        loginTextView = findViewById(R.id.back_btn)
     }
     private fun setupListeners() {
         registerBtn.setOnClickListener {
             val email = emailInput.text.toString()
             val password = passwordInput.text.toString()
-            if (email.isNotEmpty() && password.isNotEmpty()) {
-                authViewModel.registerUser(email, password)
+            val repeatPassword = repeatPasswordInput.text.toString()
+            if (email.isNotEmpty() && password.isNotEmpty() && repeatPassword.isNotEmpty()) {
+                if (password == repeatPassword) {
+                    authViewModel.registerUser(email, password)
+                } else {
+                    showMessage("Passwords do not match")
+                }
             } else {
-                showMessage("Please enter email and password")
+                showMessage("Please fill in all fields")
             }
+        }
+
+        loginTextView.setOnClickListener {
+            navigateToLoginActivity()
         }
     }
 
@@ -65,6 +79,11 @@ class RegisterActivity : AppCompatActivity() {
         val intent = Intent(this@RegisterActivity, MainActivity::class.java)
         startActivity(intent)
         finish()
+    }
+
+    private fun navigateToLoginActivity() {
+        val intent = Intent(this@RegisterActivity, LoginActivity::class.java)
+        startActivity(intent)
     }
 }
 
