@@ -7,6 +7,9 @@
     <color name="dark_gray">#333333</color>
     <color name="white">#FFFFFF</color>
     <color name="my_primary">#5E35B1</color>
-    <color name="colorPrimary">#6200EE</color>
-    <color name="colorAccent">#03DAC5</color>
+
+
+    <color name="primary">#011c25</color>
+    <color name="secondary">#11cca7</color>
+    <color name="tetriary">#b5e9ef</color>
 </resources>

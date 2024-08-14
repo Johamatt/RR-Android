@@ -15,7 +15,7 @@ android {
         kotlinCompilerExtensionVersion = "1.3.2"
     }
     namespace = "com.example.sport_geo_app"
-    compileSdk = 34
+    compileSdk = 35
 
     defaultConfig {
         manifestPlaceholders["ADMOB_APP_ID"] = "ca-app-pub-1756439763011964~9652004324"
@@ -65,9 +65,13 @@ kapt {
 
 
 dependencies {
+    implementation("androidx.credentials:credentials:1.5.0-alpha04")
+
+    implementation("androidx.credentials:credentials-play-services-auth:1.5.0-alpha04")
+
     implementation ("androidx.credentials:credentials:1.2.2")
     implementation ("androidx.credentials:credentials-play-services-auth:1.2.2")
-    implementation ("com.google.android.libraries.identity.googleid:googleid:<latest version>")
+    implementation ("com.google.android.libraries.identity.googleid:googleid:1.1.1")
     implementation("com.google.dagger:hilt-android:2.48")
     kapt("com.google.dagger:hilt-android-compiler:2.48")
     implementation(libs.fragment.ktx)

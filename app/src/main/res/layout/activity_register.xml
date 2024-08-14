@@ -67,7 +67,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="16dp"
                 android:hint="Email"
-                app:boxStrokeColor="@color/colorPrimary">
+                app:boxStrokeColor="@color/secondary">
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/register_email_input"
@@ -80,7 +80,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:hint="Password"
-                app:boxStrokeColor="@color/colorPrimary">
+                app:boxStrokeColor="@color/secondary">
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/register_password_input"

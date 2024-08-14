@@ -12,6 +12,7 @@ import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.credentials.CredentialManager
 import com.example.sport_geo_app.MainActivity
 import com.example.sport_geo_app.R
 import com.example.sport_geo_app.ui.viewmodel.AuthViewModel
@@ -30,6 +31,8 @@ class LoginActivity : AppCompatActivity() {
 
     private lateinit var gso: GoogleSignInOptions
     private lateinit var gsc: GoogleSignInClient
+
+    private lateinit var credentialManager: CredentialManager
     private lateinit var googleBtn: ImageView
     private lateinit var emailInput: EditText
     private lateinit var passwordInput: EditText

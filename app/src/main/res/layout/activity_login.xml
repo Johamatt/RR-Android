@@ -8,74 +8,65 @@
     android:orientation="vertical"
     android:gravity="center"
     android:paddingHorizontal="28dp"
-    android:background="@drawable/bg8"
+    android:background="@color/primary"
     tools:context=".MainActivity">
 
     <com.google.android.material.textfield.TextInputLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="Email Address"
+        android:hint="Email"
+        app:startIconDrawable="@drawable/baseline_email_outline_24"
+        app:startIconTint="@color/white"
         android:textColorHint="@color/white"
-        app:endIconTint="@color/colorAccent">
+        app:endIconTint="@color/tetriary">
 
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/email_input"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:textColor="@color/white"
-            android:textColorHint="@color/colorAccent" />
+            android:textColorHint="@color/white" />
     </com.google.android.material.textfield.TextInputLayout>
 
     <com.google.android.material.textfield.TextInputLayout
-        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.Dense"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="Enter password"
+        app:startIconDrawable="@drawable/baseline_lock_outline_24"
+        app:startIconTint="@color/white"
+        android:hint="Password"
+        android:layout_marginTop="16dp"
         app:endIconMode="password_toggle"
         android:textColorHint="@color/white"
-        app:boxStrokeColor="@color/white"
-        app:endIconTint="@color/colorAccent">
+        app:endIconTint="@color/tetriary">
 
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/password_input"
-            android:textColor="@color/white"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
+            android:layout_height="wrap_content"
+            android:textColor="@color/white"
+            android:inputType="textPassword" />
     </com.google.android.material.textfield.TextInputLayout>
 
-    <RelativeLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content">
-
-        <TextView
-            android:id="@+id/register_btn"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Register"
-            android:textColor="@color/white"
-            android:textSize="14sp"
-            android:textStyle="bold"
-            android:layout_alignParentStart="true"
-            android:layout_centerVertical="true" />
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="I forgot my password"
-            android:textColor="@color/white"
-            android:textSize="14sp"
-            android:textStyle="bold"
-            android:layout_alignParentEnd="true"
-            android:layout_centerVertical="true" />
-
-    </RelativeLayout>
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Forgot Password?"
+        android:textColor="@color/secondary"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        android:layout_marginTop="16dp"
+        android:layout_gravity="end"
+        android:layout_alignParentEnd="true"
+        android:gravity="end" />
 
     <com.google.android.material.button.MaterialButton
         android:id="@+id/email_login_btn"
         android:layout_width="match_parent"
         android:layout_height="60dp"
+        android:backgroundTint="@color/secondary"
+        android:layout_marginTop="18dp"
+        android:textSize="18sp"
         android:text="Login"
-        android:textStyle="bold"
         app:cornerRadius="32dp" />
 
     <View
@@ -86,53 +77,63 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
+        android:layout_marginTop="16dp"
         android:gravity="center">
 
         <View
             android:layout_width="0dp"
             android:layout_height="1dp"
             android:layout_weight="1"
-            android:background="#000000" />
+            android:background="@color/tetriary" />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Or Continue with"
-            android:textColor="@color/white"
-            android:textSize="14sp"
+            android:text="Or"
+            android:textColor="@color/tetriary"
+            android:textSize="18sp"
             android:textStyle="bold"
-            android:paddingHorizontal="10dp"
-            android:layout_gravity="center" />
+            android:paddingHorizontal="10dp" />
 
         <View
             android:layout_width="0dp"
             android:layout_height="1dp"
             android:layout_weight="1"
-            android:background="#000000" />
+            android:background="@color/tetriary" />
     </LinearLayout>
+
+    <ImageView
+        android:id="@+id/google_btn"
+        android:layout_width="280dp"
+        android:layout_height="50dp"
+        android:layout_marginTop="16dp"
+        android:scaleType="centerInside"
+        android:contentDescription="Google login button"
+        android:src="@drawable/google_login_dark" />
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
+        android:layout_marginTop="40dp"
         android:gravity="center">
 
-        <androidx.cardview.widget.CardView
+        <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_margin="14dp"
-            app:cardCornerRadius="28dp"
-            app:cardElevation="4dp">
+            android:text="Don't have an account?"
+            android:textColor="@color/white"
+            android:textSize="16sp"
+            android:textStyle="bold" />
 
-            <ImageView
-                android:id="@+id/google_btn"
-                android:layout_width="48dp"
-                android:layout_height="48dp"
-                android:padding="8dp"
-                android:contentDescription="google button"
-                android:src="@drawable/googleg_standard_color_18" />
-
-        </androidx.cardview.widget.CardView>
+        <TextView
+            android:id="@+id/register_btn"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:text="Register now"
+            android:textColor="@color/secondary"
+            android:textSize="18sp"
+            android:textStyle="bold" />
     </LinearLayout>
-
 </LinearLayout>
