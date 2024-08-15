@@ -24,14 +24,15 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        val isLoggedIn = encryptedSharedPreferences.getString(USER_ID_KEY, null)
-
-        if (isLoggedIn !== null) {
+        //TODO move to splash?
+        val isLoggedIn = encryptedSharedPreferences.contains(USER_ID_KEY)
+        if (!isLoggedIn) {
             val loginIntent = Intent(this, LoginActivity::class.java)
             startActivity(loginIntent)
             finish()
             return
         }
+        //
 
         setContentView(R.layout.activity_main)
 

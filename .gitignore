@@ -15,7 +15,7 @@
 local.properties
 
 /app/src/main/res/values/developer-config.xml
-/app/src/main/res/raw
+/app/src/main/res/raw/*.pem
 
 
 

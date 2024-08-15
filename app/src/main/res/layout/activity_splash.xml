@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/primary">
+
+    <com.airbnb.lottie.LottieAnimationView
+        android:id="@+id/splash_animation"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:lottie_rawRes="@raw/splash_lottie"
+        app:lottie_autoPlay="true"
+        app:lottie_loop="true" />
+
+    <ImageView
+        android:id="@+id/logo_image"
+        android:layout_width="280dp"
+        android:layout_height="280dp"
+        android:layout_centerInParent="true"
+        android:src="@drawable/logo_1" />
+
+    <TextView
+        android:id="@+id/text_view"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textSize="28sp"
+        android:text="Sport Tracker"
+        android:textColor="@android:color/white"
+        android:layout_below="@id/logo_image"
+        android:fontFamily="@font/lobster_regular"
+        android:layout_centerHorizontal="true" />
+
+
+</RelativeLayout>
