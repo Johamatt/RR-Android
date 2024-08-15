@@ -20,31 +20,10 @@
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:theme="@style/Theme.Sportgeoapp"
-        tools:targetApi="31">
+        android:theme="@style/Theme.Sportgeoapp">
         <meta-data
             android:name="com.google.android.gms.ads.APPLICATION_ID"
             android:value="@string/ADMOB_APP_ID"/>
-
-        <activity
-            android:name=".ui.activity.LoginActivity"
-            android:exported="true"
-            android:theme="@style/Theme.Sportgeoapp">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
-        </activity>
-        <activity
-            android:name=".ui.activity.RegisterActivity"
-            android:exported="true"
-            android:theme="@style/Theme.Sportgeoapp">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
-        </activity>
-
         <activity
             android:name=".MainActivity"
             android:exported="true"
@@ -54,6 +33,15 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-
+        <activity
+            android:name=".ui.activity.LoginActivity"
+            android:exported="true"
+            android:theme="@style/Theme.Sportgeoapp">
+        </activity>
+        <activity
+            android:name=".ui.activity.RegisterActivity"
+            android:exported="true"
+            android:theme="@style/Theme.Sportgeoapp">
+        </activity>
     </application>
 </manifest>
