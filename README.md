@@ -5,7 +5,8 @@ Android implementation for https://github.com/Johamatt/RR-API
 
 # App flow (08.2024):
 
-[![Watch the video](https://img.youtube.com/vi/VIDEO_ID/maxresdefault.jpg)](https://github.com/Johamatt/gifs/blob/main/screen-recording-20240818-191926_u7T4i8jV.mp4)
+https://github.com/user-attachments/assets/0f5504e8-5fe9-4e2b-8b75-6ea717877f97
+
 
 
 # Installation
