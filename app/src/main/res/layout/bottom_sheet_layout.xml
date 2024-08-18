@@ -6,17 +6,25 @@
     android:padding="16dp">
 
     <TextView
-        android:id="@+id/bottomSheetTitle"
+        android:id="@+id/point_name"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Bottom Sheet"
-        android:textSize="20sp"
-        android:textStyle="bold" />
+        android:text="Point Name"
+        android:textStyle="bold"
+        android:textSize="18sp"
+        android:paddingBottom="8dp" />
 
-    <!-- Add more views here -->
-    <Button
-        android:id="@+id/bottomSheetButton"
+    <TextView
+        android:id="@+id/point_address"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Action Button" />
+        android:text="Address"
+        android:paddingBottom="8dp" />
+
+    <TextView
+        android:id="@+id/point_type"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Type" />
+
 </LinearLayout>

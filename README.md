@@ -2,6 +2,13 @@
 
 Android implementation for https://github.com/Johamatt/RR-API
 
+
+# App flow (08.2024):
+
+<video width="640" height="480" controls>
+  <source src="https://github.com/Johamatt/gifs/raw/main/screen-recording-20240818-191926_u7T4i8jV.webm" type="video/webm">
+</video>
+
 # Installation
 
 ## Prequirements

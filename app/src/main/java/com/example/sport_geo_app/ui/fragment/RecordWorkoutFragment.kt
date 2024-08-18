@@ -233,7 +233,7 @@ class RecordWorkoutFragment : Fragment() {
         val point = Point.fromLngLat(location.longitude, location.latitude)
         locationList.add(point)
 
-        distanceTextView.text = String.format("Distance: %.2f m", distanceTravelled)
+        distanceTextView.text = String.format("%.2f m", distanceTravelled)
         updateSpeed()
     }
 
@@ -241,15 +241,15 @@ class RecordWorkoutFragment : Fragment() {
         val elapsedTime = (SystemClock.elapsedRealtime() - chronometer.base) / 1000.0
         val avgSpeed = if (elapsedTime > 0) distanceTravelled / elapsedTime else 0.0
         speedTextView.post {
-            speedTextView.text = String.format("Avg Speed: %.2f m/s", avgSpeed)
+            speedTextView.text = String.format("%.2f m/s", avgSpeed)
         }
     }
 
     private fun resetWorkoutData() {
         pausedTime = 0
         distanceTravelled = 0.0f
-        distanceTextView.text = "Distance: 0.00 km"
-        speedTextView.text = "Avg Speed: 0.00 m/s"
+        distanceTextView.text = "0.00 km"
+        speedTextView.text = "0.00 m/s"
         chronometer.base = SystemClock.elapsedRealtime()
         chronometer.stop()
     }

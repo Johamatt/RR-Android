@@ -87,11 +87,10 @@ class WorkoutsFragment : Fragment() {
 
         override fun onBindViewHolder(holder: WorkoutViewHolder, position: Int) {
             val workout = workouts[position]
-            holder.workoutIdTextView.text = workout.workout_id.toString()
             holder.nameTextView.text = workout.name
             holder.timeTextView.text = workout.time
             holder.sportTextView.text = workout.sport
-            holder.distanceMetersTextView.text = workout.distanceMeters.toString()
+            holder.distanceMetersTextView.text = String.format("%.2f", workout.distanceMeters)
         }
 
         override fun getItemCount(): Int {
@@ -104,7 +103,6 @@ class WorkoutsFragment : Fragment() {
         }
 
         inner class WorkoutViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-            val workoutIdTextView: TextView = itemView.findViewById(R.id.workoutIdTextView)
             val nameTextView: TextView = itemView.findViewById(R.id.nameTextView)
             val timeTextView: TextView = itemView.findViewById(R.id.timeTextView)
             val sportTextView: TextView= itemView.findViewById(R.id.sportTextView)

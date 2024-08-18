@@ -8,20 +8,32 @@
     android:background="@drawable/item_background"
     android:layout_margin="8dp">
 
+
     <TextView
-        android:id="@+id/workoutIdTextView"
+        android:id="@+id/nameHeaderTextView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textSize="18sp"
+        android:text="Name:"
+        android:textSize="14sp"
+        android:textColor="@color/tetriary"
         android:textStyle="bold"
-        android:textColor="@color/black"/>
+        android:layout_marginTop="8dp"/>
 
     <TextView
         android:id="@+id/nameTextView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:textSize="16sp"
-        android:textColor="@color/black"
+        android:textColor="@color/tetriary"/>
+
+    <TextView
+        android:id="@+id/timeHeaderTextView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Time:"
+        android:textSize="14sp"
+        android:textColor="@color/tetriary"
+        android:textStyle="bold"
         android:layout_marginTop="8dp"/>
 
     <TextView
@@ -29,7 +41,16 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:textSize="14sp"
-        android:textColor="@color/black"
+        android:textColor="@color/tetriary"/>
+
+    <TextView
+        android:id="@+id/sportHeaderTextView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Sport:"
+        android:textSize="14sp"
+        android:textColor="@color/tetriary"
+        android:textStyle="bold"
         android:layout_marginTop="8dp"/>
 
     <TextView
@@ -37,16 +58,23 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:textSize="14sp"
-        android:textColor="@color/dark_gray"
-        android:layout_marginTop="4dp"/>
+        android:textColor="@color/tetriary"/>
+
+    <TextView
+        android:id="@+id/distanceMetersHeaderTextView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Distance (m):"
+        android:textSize="14sp"
+        android:textColor="@color/tetriary"
+        android:textStyle="bold"
+        android:layout_marginTop="8dp"/>
 
     <TextView
         android:id="@+id/distanceMetersTextView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:textSize="14sp"
-        android:textColor="@color/dark_gray"
-        android:layout_marginTop="4dp"/>
+        android:textColor="@color/tetriary"/>
 
 </LinearLayout>
-

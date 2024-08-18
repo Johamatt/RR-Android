@@ -30,57 +30,13 @@
             android:textColorHint="@android:color/darker_gray" />
     </RelativeLayout>
 
-    <!-- Horizontally Scrollable List of Buttons Below Search Bar -->
-    <HorizontalScrollView
-        android:id="@+id/buttonScrollView"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/searchBarContainer"
-        android:layout_marginVertical="8dp"
-        android:paddingStart="8dp"
-        android:paddingEnd="8dp">
 
-        <LinearLayout
-            android:id="@+id/buttonContainer"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal">
-
-            <Button
-                android:id="@+id/button1"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Button 1" />
-
-            <Button
-                android:id="@+id/button2"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="8dp"
-                android:text="Button 2" />
-
-            <Button
-                android:id="@+id/button3"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="8dp"
-                android:text="Button 3" />
-
-            <Button
-                android:id="@+id/button4"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="8dp"
-                android:text="Button 4" />
-
-        </LinearLayout>
-    </HorizontalScrollView>
 
     <com.mapbox.maps.MapView
         android:id="@+id/mapView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_below="@id/buttonScrollView" />
+        android:layout_below="@+id/searchBarContainer" />
 
     <!-- Bottom-Right ImageButtons -->
 
@@ -151,7 +107,7 @@
         android:background="@drawable/circle_icon_background">
 
         <ImageButton
-            android:id="@+id/MaptypeButton"
+            android:id="@+id/mapTypeButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:background="?attr/selectableItemBackgroundBorderless"

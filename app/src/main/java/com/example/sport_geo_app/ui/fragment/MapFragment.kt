@@ -49,7 +49,6 @@ import android.widget.ImageButton
 import androidx.fragment.app.viewModels
 import com.example.sport_geo_app.data.model.PointPin
 import com.example.sport_geo_app.ui.fragment.Dialog.BottomSheetFragment
-import com.example.sport_geo_app.ui.fragment.Dialog.InfoFragment
 import com.example.sport_geo_app.ui.viewmodel.GeoDataViewModel
 import com.mapbox.maps.extension.style.sources.getSource
 import dagger.hilt.android.AndroidEntryPoint
@@ -62,6 +61,14 @@ class MapFragment : Fragment() {
     private lateinit var viewAnnotationManager: ViewAnnotationManager
     private lateinit var locationListener: LocationListener
     private lateinit var requestPermissionLauncher: ActivityResultLauncher<Array<String>>
+
+    private val mapStyles = listOf(
+        Style.MAPBOX_STREETS,
+        Style.SATELLITE,
+        Style.DARK
+    )
+    private var currentMapStyleIndex = 0
+
 
     @Inject
     lateinit var encryptedSharedPreferences: SharedPreferences
@@ -77,15 +84,25 @@ class MapFragment : Fragment() {
     }
 
     private fun initializeButtonListeners(view: View) {
-        val button1: View = view.findViewById(R.id.button1)
-        button1.setOnClickListener {
-            val bottomSheetFragment = BottomSheetFragment()
-            bottomSheetFragment.show(parentFragmentManager, bottomSheetFragment.tag)
+        val maptypeButton: ImageButton = view.findViewById(R.id.mapTypeButton)
+        maptypeButton.setOnClickListener {
+            toggleMapStyle()
         }
 
         val locationButton: ImageButton = view.findViewById(R.id.locationButton)
         locationButton.setOnClickListener {
             moveToCurrentLocation()
+        }
+    }
+
+    private fun toggleMapStyle() {
+        currentMapStyleIndex = (currentMapStyleIndex + 1) % mapStyles.size
+        mapView.mapboxMap.loadStyle(mapStyles[currentMapStyleIndex]) {
+            setupLocationListener()
+            setupViewAnnotationManager()
+            geoDataViewModel.getGeoJson()
+            setupMapClickListener()
+            addMapImages()
         }
     }
 
@@ -159,7 +176,7 @@ class MapFragment : Fragment() {
     private fun initializeMap() {
         mapView.mapboxMap.apply {
             setCamera(CameraOptions.Builder().zoom(10.0).pitch(0.0).build())
-            loadStyle(Style.STANDARD) {
+            loadStyle(Style.MAPBOX_STREETS) {
                 setupLocationListener()
                 setupViewAnnotationManager()
                 geoDataViewModel.getGeoJson()
@@ -205,14 +222,14 @@ class MapFragment : Fragment() {
                 style.removeStyleLayer(COUNT_LAYER_ID)
                 style.removeStyleSource(GEOJSON_SOURCE_ID)
             }
-                style.addSource(
-                    geoJsonSource(GEOJSON_SOURCE_ID) {
-                        data(geoJsonString)
-                        cluster(true)
-                        maxzoom(14)
-                        clusterRadius(50)
-                    }
-                )
+            style.addSource(
+                geoJsonSource(GEOJSON_SOURCE_ID) {
+                    data(geoJsonString)
+                    cluster(true)
+                    maxzoom(14)
+                    clusterRadius(50)
+                }
+            )
             addMapLayers(style)
         } else {
             Log.e(TAG, "GeoJSON data is empty")
@@ -308,35 +325,17 @@ class MapFragment : Fragment() {
     }
 
     private fun handleUnclusteredPointClick(values: Feature) {
-        (values.geometry() as? Point)?.let { coordinates ->
-            val viewAnnotation = viewAnnotationManager.addViewAnnotation(
-                resId = R.layout.point_info_layout,
-                options = viewAnnotationOptions {
-                    geometry(coordinates)
-                }
-            )
+        val placeMarker = Gson().fromJson(values.properties().toString(), PointPin::class.java)
+        val name = placeMarker.name_fi
+        val address = placeMarker.katuosoite
+        val type = placeMarker.liikuntapaikkatyyppi
 
-            val placeMarker = Gson().fromJson(values.properties().toString(), PointPin::class.java)
-            val name = placeMarker.name_fi
-            val address = placeMarker.katuosoite
-            val type = placeMarker.liikuntapaikkatyyppi
-
-            viewAnnotation.apply {
-                findViewById<TextView>(R.id.point_name).text = name
-                findViewById<TextView>(R.id.point_address).text = address
-                findViewById<TextView>(R.id.point_type).text = type
-
-                findViewById<Button>(R.id.info_button).setOnClickListener {
-                    handleInfoButtonClick(name, address, type)
-                }
-            }
-        }
+        val bottomSheetFragment = BottomSheetFragment.newInstance(name, address, type)
+        bottomSheetFragment.show(parentFragmentManager, "bottomSheetFragment")
     }
 
-    private fun handleInfoButtonClick(name: String, address: String, type: String) {
-        val infoFragment = InfoFragment.newInstance(name, address, type)
-        infoFragment.show(parentFragmentManager, "infoFragment")
-    }
+
+
 
     companion object {
         private val GEOJSON_SOURCE_ID = "places"
