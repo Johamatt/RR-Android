@@ -68,16 +68,13 @@ dependencies {
 
     androidTestImplementation(libs.hilt.android.testing)
     kaptAndroidTest(libs.hilt.android.compiler)
+    implementation(libs.hilt.android)
+    kapt(libs.hilt.android.compiler)
 
-    implementation("androidx.credentials:credentials:1.5.0-alpha04")
+    implementation(libs.androidx.credentials)
+    implementation(libs.androidx.credentials.play.services.auth)
+    implementation (libs.googleid)
 
-    implementation("androidx.credentials:credentials-play-services-auth:1.5.0-alpha04")
-
-    implementation ("androidx.credentials:credentials:1.2.2")
-    implementation ("androidx.credentials:credentials-play-services-auth:1.2.2")
-    implementation ("com.google.android.libraries.identity.googleid:googleid:1.1.1")
-    implementation("com.google.dagger:hilt-android:2.48")
-    kapt("com.google.dagger:hilt-android-compiler:2.48")
     implementation(libs.fragment.ktx)
     implementation(libs.activity.ktx)
     implementation(libs.security.crypto.ktx)
