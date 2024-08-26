@@ -1,4 +1,4 @@
-package com.example.sport_geo_app
+package com.example.sport_geo_app.modules
 
 import com.example.sport_geo_app.ui.viewmodel.AuthViewModel
 import dagger.Module
@@ -11,7 +11,7 @@ import javax.inject.Singleton
 
 @Module
 @InstallIn(SingletonComponent::class)
-object TestAppModule {
+object TestAuthModule {
 
     @Provides
     @Singleton

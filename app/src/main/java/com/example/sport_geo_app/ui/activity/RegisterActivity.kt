@@ -4,11 +4,11 @@ import android.content.Intent
 import android.os.Bundle
 import android.widget.Button
 import android.widget.TextView
-import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import com.example.sport_geo_app.MainActivity
 import com.example.sport_geo_app.R
+import com.example.sport_geo_app.di.Toaster
 import com.example.sport_geo_app.ui.viewmodel.AuthViewModel
 import com.example.sport_geo_app.utils.ErrorManager
 import com.google.android.material.textfield.TextInputEditText
@@ -19,9 +19,11 @@ import javax.inject.Inject
 @AndroidEntryPoint
 class RegisterActivity : AppCompatActivity() {
 
+    private val TAG = "RegisterActivity"
     @Inject lateinit var errorManager: ErrorManager
-    private val authViewModel: AuthViewModel by viewModels()
+    @Inject lateinit var toaster: Toaster
 
+    private val authViewModel: AuthViewModel by viewModels()
     private lateinit var emailInput: TextInputEditText
     private lateinit var passwordInput: TextInputEditText
     private lateinit var repeatPasswordInput: TextInputEditText
@@ -39,7 +41,9 @@ class RegisterActivity : AppCompatActivity() {
                 authViewModel.handleSuccessResponse(authResponse)
                 navigateToMainActivity()
             }.onFailure { throwable ->
-                errorManager.handleErrorResponse(throwable)
+                val errorMessage = errorManager.handleErrorResponse(throwable)
+
+                toaster.showToast(errorMessage)
             }
         }
     }
@@ -59,20 +63,16 @@ class RegisterActivity : AppCompatActivity() {
                 if (password == repeatPassword) {
                     authViewModel.registerUser(email, password)
                 } else {
-                    showMessage("Passwords do not match")
+                    toaster.showToast("Passwords do not match")
                 }
             } else {
-                showMessage("Please fill in all fields")
+                toaster.showToast("Please fill in all fields")
             }
         }
 
         loginTextView.setOnClickListener {
             navigateToLoginActivity()
         }
-    }
-
-    private fun showMessage(message: String) {
-        Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
     }
 
     private fun navigateToMainActivity() {

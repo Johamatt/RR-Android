@@ -8,13 +8,13 @@ import android.widget.Button
 import android.widget.EditText
 import android.widget.ImageView
 import android.widget.TextView
-import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.credentials.CredentialManager
 import com.example.sport_geo_app.MainActivity
 import com.example.sport_geo_app.R
+import com.example.sport_geo_app.di.Toaster
 import com.example.sport_geo_app.ui.viewmodel.AuthViewModel
 import com.example.sport_geo_app.utils.Constants.USER_ID_KEY
 import com.example.sport_geo_app.utils.ErrorManager
@@ -41,8 +41,7 @@ class LoginActivity : AppCompatActivity() {
     private val authViewModel: AuthViewModel by viewModels()
     @Inject lateinit var encryptedSharedPreferences: SharedPreferences
     @Inject lateinit var errorManager: ErrorManager
-
-    private val TAG = "LoginActivity"
+    @Inject lateinit var toaster: Toaster
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -63,7 +62,8 @@ class LoginActivity : AppCompatActivity() {
                 authViewModel.handleSuccessResponse(authResponse)
                 navigateToMainActivity()
             }.onFailure { throwable ->
-                errorManager.handleErrorResponse(throwable)
+                val errorMessage = errorManager.handleErrorResponse(throwable)
+                toaster.showToast(errorMessage)
             }
         }
     }
@@ -117,7 +117,7 @@ class LoginActivity : AppCompatActivity() {
             if (email.isNotEmpty() && password.isNotEmpty()) {
                 loginWithEmail(email, password)
             } else {
-                displayErrorMessage("Please enter email and password")
+                toaster.showToast("Please enter email and password")
             }
         }
     }
@@ -130,8 +130,6 @@ class LoginActivity : AppCompatActivity() {
     private fun loginWithEmail(email: String, password: String) {
         authViewModel.loginWithEmail(email, password)
     }
-
-
 
     private val signInLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
         Log.d(TAG, "Result Code: ${result.resultCode}")
@@ -149,20 +147,19 @@ class LoginActivity : AppCompatActivity() {
                     }
                 }
             } catch (e: ApiException) {
-                displayErrorMessage("Google Sign-In failed: ${e.localizedMessage}")
+                toaster.showToast("Google Sign-In failed: ${e.localizedMessage}")
                 e.printStackTrace()
             }
         }
     }
 
-    private fun displayErrorMessage(message: String) {
-        Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
-    }
 
     private fun navigateToMainActivity() {
         startActivity(Intent(this, MainActivity::class.java))
         finish()
     }
-
+    companion object {
+        private const val TAG = "LoginActivity"
+    }
 }
 

@@ -19,8 +19,8 @@ import javax.inject.Singleton
 object AppModule {
 
     @Provides
-    fun provideErrorHandler(@ApplicationContext context: Context): ErrorManager {
-        return ErrorManager(context)
+    fun provideErrorManager(): ErrorManager {
+        return ErrorManager()
     }
 
     @Provides

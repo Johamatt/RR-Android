@@ -25,6 +25,7 @@ converterGson = "2.9.0"
 volley = "1.2.1"
 playServicesAuth = "21.2.0"
 playServicesAds = "23.3.0"
+espressoIntents = "3.6.1"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -55,6 +56,7 @@ converter-gson = { group = "com.squareup.retrofit2", name = "converter-gson", ve
 volley = { group = "com.android.volley", name = "volley", version.ref = "volley" }
 play-services-auth = { group = "com.google.android.gms", name = "play-services-auth", version.ref = "playServicesAuth" }
 play-services-ads = { group = "com.google.android.gms", name = "play-services-ads", version.ref = "playServicesAds" }
+androidx-espresso-intents = { group = "androidx.test.espresso", name = "espresso-intents", version.ref = "espressoIntents" }
 
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }
