@@ -9,7 +9,7 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class GeoDataViewModel @Inject constructor(
+class MapFragmentViewModel @Inject constructor(
     private val geoDataRepository: GeoDataRepository,
 ) : ViewModel() {
 

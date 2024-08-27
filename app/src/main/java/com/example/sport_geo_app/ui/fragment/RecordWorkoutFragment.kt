@@ -177,6 +177,7 @@ class RecordWorkoutFragment : Fragment() {
 
         val formattedTime = String.format("%02d:%02d:%02d", hours, minutes, seconds)
 
+        //TODO change interval
         // Create a LineString GeoJSON
         val lineString = LineString.fromLngLats(locationList)
 

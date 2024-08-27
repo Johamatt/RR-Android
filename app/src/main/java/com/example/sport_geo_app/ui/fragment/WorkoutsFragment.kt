@@ -12,7 +12,7 @@ import android.widget.TextView
 import androidx.fragment.app.viewModels
 import com.example.sport_geo_app.R
 import com.example.sport_geo_app.data.model.Workout
-import com.example.sport_geo_app.ui.viewmodel.WorkoutViewModel
+import com.example.sport_geo_app.ui.viewmodel.WorkoutsFragmentViewModel
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import dagger.hilt.android.AndroidEntryPoint
@@ -22,7 +22,7 @@ import javax.inject.Inject
 @AndroidEntryPoint
 class WorkoutsFragment : Fragment() {
 
-    private val workOutViewModel: WorkoutViewModel by viewModels()
+    private val workOutViewModel: WorkoutsFragmentViewModel by viewModels()
     private lateinit var recyclerView: RecyclerView
     private lateinit var workoutsAdapter: WorkoutsAdapter
     @Inject

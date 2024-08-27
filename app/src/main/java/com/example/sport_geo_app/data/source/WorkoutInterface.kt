@@ -15,10 +15,11 @@ interface WorkoutInterface {
     @Headers("Content-Type: application/json")
     suspend fun getWorkouts(@Query("user_id") userId: Int): Response<ResponseBody>
 
-
     @POST("workouts")
     @Headers("Content-Type: application/json")
     suspend fun createWorkout(@Body requestBody: RequestBody):  Response<ResponseBody>
 
-
+    @GET("workouts/totals")
+    @Headers("Content-Type: application/json")
+    suspend fun getWorkoutsTotal(@Query("user_id") userId: Int): Response<ResponseBody>
 }

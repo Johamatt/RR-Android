@@ -4,5 +4,5 @@ data class User(
     val user_id: Int,
     val googleId: String?,
     val email: String,
- //   val workouts: List<Workout> ?
+    //   val workouts: List<Workout> ?
 )

@@ -49,7 +49,7 @@ import android.widget.ImageButton
 import androidx.fragment.app.viewModels
 import com.example.sport_geo_app.data.model.PointPin
 import com.example.sport_geo_app.ui.fragment.Dialog.BottomSheetFragment
-import com.example.sport_geo_app.ui.viewmodel.GeoDataViewModel
+import com.example.sport_geo_app.ui.viewmodel.MapFragmentViewModel
 import com.mapbox.maps.extension.style.sources.getSource
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
@@ -73,7 +73,7 @@ class MapFragment : Fragment() {
     @Inject
     lateinit var encryptedSharedPreferences: SharedPreferences
 
-    private val geoDataViewModel: GeoDataViewModel by viewModels()
+    private val geoDataViewModel: MapFragmentViewModel by viewModels()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?

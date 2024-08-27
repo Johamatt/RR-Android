@@ -13,7 +13,8 @@ import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.viewModels
 import com.example.sport_geo_app.R
 import com.example.sport_geo_app.data.model.WorkoutCreate
-import com.example.sport_geo_app.ui.viewmodel.WorkoutViewModel
+import com.example.sport_geo_app.ui.viewmodel.RecordWorkoutFragmentViewModel
+import com.example.sport_geo_app.ui.viewmodel.WorkoutsFragmentViewModel
 import com.example.sport_geo_app.utils.Constants.USER_ID_KEY
 import com.google.gson.Gson
 import com.google.gson.JsonArray
@@ -31,7 +32,7 @@ class CreateWorkoutDialogFragment : DialogFragment() {
     private var distanceMeters: Float = 0.0F
     private var sport: String? = null
     private var linestring: LineString? = null
-    private val workOutViewModel: WorkoutViewModel by viewModels()
+    private val recordWorkoutFragmentViewModel: RecordWorkoutFragmentViewModel by viewModels()
     private val TAG = "CreateWorkoutDialogFragment"
     private val gson = Gson()
     @Inject
@@ -52,7 +53,7 @@ class CreateWorkoutDialogFragment : DialogFragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        workOutViewModel.createWorkoutResult.observe(viewLifecycleOwner) { result ->
+        recordWorkoutFragmentViewModel.createWorkoutResult.observe(viewLifecycleOwner) { result ->
             result.onSuccess { responseBody ->
                 Log.d(TAG, responseBody.toString())
                 dismiss()
@@ -128,7 +129,7 @@ class CreateWorkoutDialogFragment : DialogFragment() {
         val jsonRequest = gson.toJson(workoutRequest)
         val requestBody = jsonRequest.toRequestBody("application/json; charset=utf-8".toMediaTypeOrNull())
 
-        workOutViewModel.createWorkOut(requestBody)
+        recordWorkoutFragmentViewModel.createWorkOut(requestBody)
     }
 
 

@@ -10,8 +10,10 @@ import android.widget.Button
 import android.widget.TextView
 import android.widget.Toast
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.viewModels
 import com.example.sport_geo_app.R
 import com.example.sport_geo_app.ui.activity.LoginActivity
+import com.example.sport_geo_app.ui.viewmodel.HomeFragmentViewModel
 import com.example.sport_geo_app.utils.AdManager
 import com.example.sport_geo_app.utils.Constants.USER_EMAIL_KEY
 import com.example.sport_geo_app.utils.Constants.USER_ID_KEY
@@ -32,6 +34,7 @@ class HomeFragment : Fragment() {
     private lateinit var loadAdBtn: Button
     @Inject lateinit var encryptedSharedPreferences: SharedPreferences
 
+    private val homeFragmentViewModel: HomeFragmentViewModel by viewModels()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -54,14 +57,34 @@ class HomeFragment : Fragment() {
         }
 
 
-        val userId = encryptedSharedPreferences.getInt(USER_ID_KEY, -1)
-        val userEmail = encryptedSharedPreferences.getString(USER_EMAIL_KEY, "")
+        homeFragmentViewModel.getWorkoutsTotalResult.observe(viewLifecycleOwner) { result ->
+            result.onSuccess { workOutsTotal ->
+                try {
+                    view.findViewById<TextView>(R.id.user_id_text_view).text = workOutsTotal.totalDistanceKM.toString()
+                    view.findViewById<TextView>(R.id.user_email_text_view).text = workOutsTotal.totalTime
+                } catch (e: Exception) {
+                    Log.e(TAG, "Exception in setting text: ${e.message}", e)
+                }
+            }.onFailure { throwable ->
+                Log.e(TAG, "Failed to get workout totals: ${throwable.message}", throwable)
+            }
+        }
 
-        view.findViewById<TextView>(R.id.user_id_text_view).text = userId.toString()
-        view.findViewById<TextView>(R.id.user_email_text_view).text = userEmail
+
+        val userId = encryptedSharedPreferences.getInt(USER_ID_KEY, -1)
+        if (userId != -1) {
+            homeFragmentViewModel.getWorkoutsTotal(userId)
+        } else {
+            //    User ID not found
+        }
+
+
 
         return view
     }
+
+
+
 
     private fun showRewardedAd() {
         adManager.showRewardedAd { rewardItem ->
@@ -88,6 +111,10 @@ class HomeFragment : Fragment() {
             }
             //TODO inject errormanager
         }
+    }
+
+    companion object {
+        private const val TAG = "HomeFragment"
     }
 }
 
