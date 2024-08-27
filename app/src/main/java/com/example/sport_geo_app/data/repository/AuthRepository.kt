@@ -56,6 +56,20 @@ class AuthRepository @Inject constructor(
             Result.failure(e)
         }
     }
+
+    suspend fun validateToken(token: String): Result<Boolean> {
+        return try {
+            val response = authInterface.validateToken("Bearer $token")
+            if (response.isSuccessful) {
+                Result.success(response.body()!!)
+            } else {
+                val errorBody = response.errorBody()?.string() ?: response.message()
+                Result.failure(Throwable(errorBody))
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
 }
 
 

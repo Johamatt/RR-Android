@@ -46,16 +46,9 @@ class LoginActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_login)
-
-        checkAndHandleGoogleSignIn { isGoogleSignInSuccessful ->
-            if (!isGoogleSignInSuccessful && isLoggedIn()) {
-                navigateToMainActivity()
-            } else {
-                initializeViews()
-                setupGoogleSignIn()
-                setupListeners()
-            }
-        }
+        initializeViews()
+        setupGoogleSignIn()
+        setupListeners()
 
         authViewModel.loginResult.observe(this) { result ->
             result.onSuccess { authResponse ->
@@ -87,17 +80,12 @@ class LoginActivity : AppCompatActivity() {
         authViewModel.loginWithGoogle(idToken)
     }
 
-
-    private fun isLoggedIn(): Boolean {
-        return encryptedSharedPreferences.contains(USER_ID_KEY)
-    }
-
     private fun initializeViews() {
         googleBtn = findViewById(R.id.google_btn)
         emailInput = findViewById(R.id.email_input)
         passwordInput = findViewById(R.id.password_input)
         emailLoginBtn = findViewById(R.id.email_login_btn)
-        registerText = findViewById(R.id.register_btn)
+        registerText = findViewById(R.id.navigate_register_btn)
     }
 
     private fun setupGoogleSignIn() {

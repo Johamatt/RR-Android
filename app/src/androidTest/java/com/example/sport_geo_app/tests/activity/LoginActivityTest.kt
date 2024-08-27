@@ -68,7 +68,7 @@ class LoginActivityTest {
     fun testToastOnEmptyFields() {
         activityRule.scenario.onActivity { activity ->
             activity.runOnUiThread {
-                activity.findViewById<Button>(R.id.register_btn).performClick()
+                activity.findViewById<Button>(R.id.email_login_btn).performClick()
             }
         }
         assert(FakeToaster.toasts.contains("Please enter email and password"))

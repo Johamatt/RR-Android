@@ -29,6 +29,16 @@ class AuthViewModel @Inject constructor(
     private val _registerResult = MutableLiveData<Result<AuthResponse>>()
     val registerResult: LiveData<Result<AuthResponse>> = _registerResult
 
+    private val _tokenResult = MutableLiveData<Result<Boolean>>()
+    val tokenResult: LiveData<Result<Boolean>> = _tokenResult
+
+    fun validateToken(token: String) {
+        viewModelScope.launch {
+            val result = authRepository.validateToken(token)
+            _tokenResult.value = result
+        }
+    }
+
     fun loginWithEmail(email: String, password: String) {
         viewModelScope.launch {
             val result = authRepository.loginWithEmail(email, password)

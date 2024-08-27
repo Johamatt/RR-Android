@@ -7,9 +7,12 @@ import androidx.fragment.app.Fragment
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import android.content.SharedPreferences
 import androidx.activity.viewModels
+import com.example.sport_geo_app.di.Toaster
 import com.example.sport_geo_app.ui.activity.LoginActivity
+import com.example.sport_geo_app.ui.viewmodel.AuthViewModel
 import com.example.sport_geo_app.ui.viewmodel.NavigationViewModel
-import com.example.sport_geo_app.utils.Constants.USER_ID_KEY
+import com.example.sport_geo_app.utils.Constants.JWT_TOKEN_KEY
+import com.example.sport_geo_app.utils.ErrorManager
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 
@@ -20,22 +23,44 @@ class MainActivity : AppCompatActivity() {
     @Inject
     lateinit var encryptedSharedPreferences: SharedPreferences
     private val navigationViewModel: NavigationViewModel by viewModels()
+    private val authViewModel: AuthViewModel by viewModels()
+    @Inject lateinit var errorManager: ErrorManager
+    @Inject lateinit var toaster: Toaster
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        //TODO move to splash?
-        val isLoggedIn = encryptedSharedPreferences.contains(USER_ID_KEY)
-        if (!isLoggedIn) {
+        val token = encryptedSharedPreferences.getString(JWT_TOKEN_KEY, null)
+
+        if (token.isNullOrEmpty()) {
             val loginIntent = Intent(this, LoginActivity::class.java)
             startActivity(loginIntent)
             finish()
-            return
+        } else {
+            authViewModel.validateToken(token)
         }
-        //
+
+        authViewModel.tokenResult.observe(this) { result ->
+            result.onSuccess { expired ->
+                if (!expired) {
+                    encryptedSharedPreferences.edit().clear()
+                    toaster.showToast("Token expired")
+                    val loginIntent = Intent(this, LoginActivity::class.java)
+                    startActivity(loginIntent)
+                    finish()
+                }
+            }.onFailure { throwable ->
+                val errorMessage = errorManager.handleErrorResponse(throwable)
+                toaster.showToast(errorMessage)
+                encryptedSharedPreferences.edit().clear()
+                val loginIntent = Intent(this, LoginActivity::class.java)
+                startActivity(loginIntent)
+                finish()
+            }
+        }
+
 
         setContentView(R.layout.activity_main)
-
         bottomNavigationView = findViewById(R.id.bottom_navigation)
         bottomNavigationView.setOnItemSelectedListener { menuItem ->
             navigationViewModel.navigateTo(menuItem.itemId)
@@ -59,5 +84,9 @@ class MainActivity : AppCompatActivity() {
         supportFragmentManager.beginTransaction()
             .replace(R.id.frame_container, fragment, fragmentTag)
             .commit()
+    }
+
+    companion object {
+        var TAG = "MainActivity"
     }
 }
