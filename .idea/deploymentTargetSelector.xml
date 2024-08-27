@@ -13,9 +13,6 @@
         </DropdownSelection>
         <DialogSelection />
       </SelectionState>
-      <SelectionState runConfigName="RegisterActivityTest">
-        <option name="selectionMode" value="DROPDOWN" />
-      </SelectionState>
       <SelectionState runConfigName="testRegisterUser_withEmptyFields_shouldShowErrorMessage()">
         <option name="selectionMode" value="DROPDOWN" />
         <DropdownSelection timestamp="2024-08-26T20:40:56.952253300Z">
@@ -34,6 +31,9 @@
         <option name="selectionMode" value="DROPDOWN" />
       </SelectionState>
       <SelectionState runConfigName="testNavigationToLoginActivity()">
+        <option name="selectionMode" value="DROPDOWN" />
+      </SelectionState>
+      <SelectionState runConfigName="LoginActivityTest">
         <option name="selectionMode" value="DROPDOWN" />
       </SelectionState>
     </selectionStates>
