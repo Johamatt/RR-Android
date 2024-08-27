@@ -11,7 +11,10 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.example.sport_geo_app.R
+import com.example.sport_geo_app.data.model.Workout
 import com.example.sport_geo_app.ui.activity.LoginActivity
 import com.example.sport_geo_app.ui.viewmodel.HomeFragmentViewModel
 import com.example.sport_geo_app.utils.AdManager
@@ -33,6 +36,8 @@ class HomeFragment : Fragment() {
     private lateinit var loadAdBtn: Button
     @Inject lateinit var encryptedSharedPreferences: SharedPreferences
 
+    private lateinit var workoutAdapter: WorkoutAdapter
+    private lateinit var latestWorkoutsRecyclerView: RecyclerView
     private val homeFragmentViewModel: HomeFragmentViewModel by viewModels()
 
     override fun onCreateView(
@@ -55,12 +60,19 @@ class HomeFragment : Fragment() {
             signOut()
         }
 
+        latestWorkoutsRecyclerView = view.findViewById(R.id.latest_workouts_recyclerview)
+        latestWorkoutsRecyclerView.layoutManager = LinearLayoutManager(requireContext())
+
 
         homeFragmentViewModel.getWorkoutsTotalResult.observe(viewLifecycleOwner) { result ->
             result.onSuccess { workOutsTotal ->
                 try {
-                    view.findViewById<TextView>(R.id.total_distance).text = workOutsTotal.totalDistanceKM.toString()
+                    Log.d(TAG,workOutsTotal.toString())
+                    view.findViewById<TextView>(R.id.total_distance).text = "${workOutsTotal.totalDistanceKM} km"
                     view.findViewById<TextView>(R.id.total_time).text = workOutsTotal.totalTime
+
+                    workoutAdapter = WorkoutAdapter(workOutsTotal.latestWorkouts)
+                    latestWorkoutsRecyclerView.adapter = workoutAdapter
                 } catch (e: Exception) {
                     Log.e(TAG, "Exception in setting text: ${e.message}", e)
                 }
@@ -68,22 +80,40 @@ class HomeFragment : Fragment() {
                 Log.e(TAG, "Failed to get workout totals: ${throwable.message}", throwable)
             }
         }
-
-
         val userId = encryptedSharedPreferences.getInt(USER_ID_KEY, -1)
         if (userId != -1) {
             homeFragmentViewModel.getWorkoutsTotal(userId)
         } else {
             //    User ID not found
         }
-
-
-
         return view
     }
 
+    class WorkoutAdapter(private val workouts: List<Workout>) :
+        RecyclerView.Adapter<WorkoutAdapter.WorkoutViewHolder>() {
+
+        inner class WorkoutViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+            val workoutName: TextView = itemView.findViewById(R.id.workout_name)
+            val workoutDistance: TextView = itemView.findViewById(R.id.workout_distance)
+            val workoutTime: TextView = itemView.findViewById(R.id.workout_time)
+        }
+
+        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): WorkoutViewHolder {
+            val view = LayoutInflater.from(parent.context)
+                .inflate(R.layout.item_workout_latest, parent, false)
+            return WorkoutViewHolder(view)
+        }
 
 
+        override fun onBindViewHolder(holder: WorkoutViewHolder, position: Int) {
+            val workout = workouts[position]
+            holder.workoutName.text = workout.name
+            holder.workoutDistance.text = "${workout.distanceMeters} km"
+            holder.workoutTime.text = workout.time
+        }
+
+        override fun getItemCount() = workouts.size
+    }
 
     private fun showRewardedAd() {
         adManager.showRewardedAd { rewardItem ->
