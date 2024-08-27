@@ -1,4 +1,4 @@
-package com.example.sport_geo_app.ui.fragment.Dialog
+package com.example.sport_geo_app.ui.fragment.dialog
 
 import android.os.Bundle
 import android.view.LayoutInflater

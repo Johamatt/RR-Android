@@ -14,7 +14,7 @@ import android.widget.TextView
 import androidx.core.app.ActivityCompat
 import com.google.android.gms.location.*
 import com.example.sport_geo_app.R
-import com.example.sport_geo_app.ui.fragment.Dialog.CreateWorkoutDialogFragment
+import com.example.sport_geo_app.ui.fragment.dialog.CreateWorkoutDialogFragment
 import android.os.SystemClock
 import android.widget.Chronometer
 import androidx.activity.result.ActivityResultLauncher

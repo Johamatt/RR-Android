@@ -1,4 +1,4 @@
-package com.example.sport_geo_app.ui.fragment.Dialog
+package com.example.sport_geo_app.ui.fragment.dialog
 
 import android.content.SharedPreferences
 import android.os.Bundle
@@ -14,7 +14,6 @@ import androidx.fragment.app.viewModels
 import com.example.sport_geo_app.R
 import com.example.sport_geo_app.data.model.WorkoutCreate
 import com.example.sport_geo_app.ui.viewmodel.RecordWorkoutFragmentViewModel
-import com.example.sport_geo_app.ui.viewmodel.WorkoutsFragmentViewModel
 import com.example.sport_geo_app.utils.Constants.USER_ID_KEY
 import com.google.gson.Gson
 import com.google.gson.JsonArray

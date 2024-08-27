@@ -22,7 +22,7 @@ import javax.inject.Inject
 @AndroidEntryPoint
 class WorkoutsFragment : Fragment() {
 
-    private val workOutViewModel: WorkoutsFragmentViewModel by viewModels()
+    private val workoutsFragmentViewModel: WorkoutsFragmentViewModel by viewModels()
     private lateinit var recyclerView: RecyclerView
     private lateinit var workoutsAdapter: WorkoutsAdapter
     @Inject
@@ -40,7 +40,7 @@ class WorkoutsFragment : Fragment() {
         workoutsAdapter = WorkoutsAdapter(emptyList())
         recyclerView.adapter = workoutsAdapter
 
-        workOutViewModel.getWorkoutsResult.observe(viewLifecycleOwner) { result ->
+        workoutsFragmentViewModel.getWorkoutsResult.observe(viewLifecycleOwner) { result ->
             result.onSuccess { responseBody ->
                 try {
                     val workoutsData = parseWorkoutsResponse(responseBody)
@@ -55,7 +55,7 @@ class WorkoutsFragment : Fragment() {
 
         val userId = encryptedSharedPreferences.getInt("user_id", -1)
         if (userId != -1) {
-            workOutViewModel.getWorkouts(userId)
+            workoutsFragmentViewModel.getWorkouts(userId)
         } else {
             //    User ID not found
         }

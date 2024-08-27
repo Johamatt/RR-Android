@@ -48,7 +48,7 @@ import android.widget.EditText
 import android.widget.ImageButton
 import androidx.fragment.app.viewModels
 import com.example.sport_geo_app.data.model.PointPin
-import com.example.sport_geo_app.ui.fragment.Dialog.BottomSheetFragment
+import com.example.sport_geo_app.ui.fragment.dialog.BottomSheetFragment
 import com.example.sport_geo_app.ui.viewmodel.MapFragmentViewModel
 import com.mapbox.maps.extension.style.sources.getSource
 import dagger.hilt.android.AndroidEntryPoint
@@ -73,7 +73,7 @@ class MapFragment : Fragment() {
     @Inject
     lateinit var encryptedSharedPreferences: SharedPreferences
 
-    private val geoDataViewModel: MapFragmentViewModel by viewModels()
+    private val mapFragmentViewModel: MapFragmentViewModel by viewModels()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
@@ -100,7 +100,7 @@ class MapFragment : Fragment() {
         mapView.mapboxMap.loadStyle(mapStyles[currentMapStyleIndex]) {
             setupLocationListener()
             setupViewAnnotationManager()
-            geoDataViewModel.getGeoJson()
+            mapFragmentViewModel.getGeoJson()
             setupMapClickListener()
             addMapImages()
         }
@@ -117,7 +117,7 @@ class MapFragment : Fragment() {
             if (actionId == EditorInfo.IME_ACTION_SEARCH || actionId == EditorInfo.IME_ACTION_DONE) {
                 val searchString = v.text.toString()
                 if (searchString.length >= 2) {
-                    geoDataViewModel.searchGeoJson(searchString)
+                    mapFragmentViewModel.searchGeoJson(searchString)
                 }
                 hideKeyboard()
                 true
@@ -163,7 +163,7 @@ class MapFragment : Fragment() {
     }
 
     private fun setupObservers() {
-        geoDataViewModel.geoDataResults.observe(viewLifecycleOwner) { result ->
+        mapFragmentViewModel.geoDataResults.observe(viewLifecycleOwner) { result ->
             result.onSuccess { geoJsonString ->
                 addClusteredGeoJsonSource(mapView.mapboxMap.style!!, geoJsonString)
             }.onFailure { throwable ->
@@ -179,7 +179,7 @@ class MapFragment : Fragment() {
             loadStyle(Style.MAPBOX_STREETS) {
                 setupLocationListener()
                 setupViewAnnotationManager()
-                geoDataViewModel.getGeoJson()
+                mapFragmentViewModel.getGeoJson()
                 setupMapClickListener()
                 addMapImages()
             }

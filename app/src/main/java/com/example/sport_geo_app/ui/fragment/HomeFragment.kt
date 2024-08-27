@@ -60,8 +60,8 @@ class HomeFragment : Fragment() {
         homeFragmentViewModel.getWorkoutsTotalResult.observe(viewLifecycleOwner) { result ->
             result.onSuccess { workOutsTotal ->
                 try {
-                    view.findViewById<TextView>(R.id.user_id_text_view).text = workOutsTotal.totalDistanceKM.toString()
-                    view.findViewById<TextView>(R.id.user_email_text_view).text = workOutsTotal.totalTime
+                    view.findViewById<TextView>(R.id.total_distance).text = workOutsTotal.totalDistanceKM.toString()
+                    view.findViewById<TextView>(R.id.total_time).text = workOutsTotal.totalTime
                 } catch (e: Exception) {
                     Log.e(TAG, "Exception in setting text: ${e.message}", e)
                 }

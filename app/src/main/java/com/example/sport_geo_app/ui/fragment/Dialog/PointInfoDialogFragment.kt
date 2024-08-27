@@ -1,4 +1,4 @@
-package com.example.sport_geo_app.ui.fragment.Dialog
+package com.example.sport_geo_app.ui.fragment.dialog
 
 import android.app.Dialog
 import android.os.Bundle
@@ -10,15 +10,15 @@ import android.widget.TextView
 import androidx.fragment.app.DialogFragment
 import com.example.sport_geo_app.R
 
-class InfoFragment : DialogFragment() {
+class PointInfoDialogFragment : DialogFragment() {
 
     companion object {
         private const val ARG_NAME = "name"
         private const val ARG_ADDRESS = "address"
         private const val ARG_TYPE = "type"
 
-        fun newInstance(name: String, address: String, type: String): InfoFragment {
-            val fragment = InfoFragment()
+        fun newInstance(name: String, address: String, type: String): PointInfoDialogFragment {
+            val fragment = PointInfoDialogFragment()
             val args = Bundle().apply {
                 putString(ARG_NAME, name)
                 putString(ARG_ADDRESS, address)

@@ -16,19 +16,19 @@
         android:text="Ad test" />
 
     <TextView
-        android:id="@+id/user_id_text_view"
+        android:id="@+id/total_distance"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="User ID"
+        android:text="Total distance"
         android:textSize="18sp"
         android:textColor="@android:color/black"
         android:layout_marginBottom="8dp" />
 
     <TextView
-        android:id="@+id/user_email_text_view"
+        android:id="@+id/total_time"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="User Email"
+        android:text="Total time"
         android:textSize="18sp"
         android:textColor="@android:color/black"
         android:layout_marginBottom="8dp" />
