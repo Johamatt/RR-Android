@@ -15,7 +15,6 @@ import com.example.sport_geo_app.R
 import com.example.sport_geo_app.ui.activity.LoginActivity
 import com.example.sport_geo_app.ui.viewmodel.HomeFragmentViewModel
 import com.example.sport_geo_app.utils.AdManager
-import com.example.sport_geo_app.utils.Constants.USER_EMAIL_KEY
 import com.example.sport_geo_app.utils.Constants.USER_ID_KEY
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInClient

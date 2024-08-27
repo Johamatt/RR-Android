@@ -4,8 +4,8 @@ import android.content.Context
 import android.content.SharedPreferences
 import com.example.sport_geo_app.R
 import com.example.sport_geo_app.data.source.AuthInterface
-import com.example.sport_geo_app.data.source.GeoDataInterface
 import com.example.sport_geo_app.data.source.AuthInterceptor
+import com.example.sport_geo_app.data.source.GeoInterface
 import com.example.sport_geo_app.data.source.WorkoutInterface
 import com.example.sport_geo_app.utils.Constants.JWT_TOKEN_KEY
 import dagger.Module
@@ -63,8 +63,8 @@ object NetworkModule {
 
     @Provides
     @Singleton
-    fun provideGeoDataInterface(@Named("jwt_retrofit") retrofit: Retrofit): GeoDataInterface {
-        return retrofit.create(GeoDataInterface::class.java)
+    fun provideGeoInterface(@Named("jwt_retrofit") retrofit: Retrofit): GeoInterface {
+        return retrofit.create(GeoInterface::class.java)
     }
 
     @Provides

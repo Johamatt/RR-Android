@@ -11,8 +11,9 @@ import androidx.recyclerview.widget.RecyclerView
 import android.widget.TextView
 import androidx.fragment.app.viewModels
 import com.example.sport_geo_app.R
-import com.example.sport_geo_app.data.model.Workout
+import com.example.sport_geo_app.data.model.WorkoutsGetResponse
 import com.example.sport_geo_app.ui.viewmodel.WorkoutsFragmentViewModel
+import com.example.sport_geo_app.utils.Constants.USER_ID_KEY
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import dagger.hilt.android.AndroidEntryPoint
@@ -27,7 +28,7 @@ class WorkoutsFragment : Fragment() {
     private lateinit var workoutsAdapter: WorkoutsAdapter
     @Inject
     lateinit var encryptedSharedPreferences: SharedPreferences
-    var TAG = "WorkoutsFragment"
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -41,19 +42,18 @@ class WorkoutsFragment : Fragment() {
         recyclerView.adapter = workoutsAdapter
 
         workoutsFragmentViewModel.getWorkoutsResult.observe(viewLifecycleOwner) { result ->
-            result.onSuccess { responseBody ->
+            result.onSuccess { workoutsData ->
                 try {
-                    val workoutsData = parseWorkoutsResponse(responseBody)
                     workoutsAdapter.submitList(workoutsData)
                 } catch (e: Exception) {
-                    //TODO inject errormanager
+                    Log.e("WorkoutsFragment", "Error updating UI", e)
                 }
             }.onFailure { throwable ->
-                //       throwable
+                Log.e("WorkoutsFragment", "Failed to get workouts", throwable)
             }
         }
 
-        val userId = encryptedSharedPreferences.getInt("user_id", -1)
+        val userId = encryptedSharedPreferences.getInt(USER_ID_KEY, -1)
         if (userId != -1) {
             workoutsFragmentViewModel.getWorkouts(userId)
         } else {
@@ -63,21 +63,7 @@ class WorkoutsFragment : Fragment() {
         return view
     }
 
-
-    private fun parseWorkoutsResponse(responseBody: ResponseBody): List<Workout> {
-        return try {
-            val gson = Gson()
-            val json = responseBody.string()
-            val workoutListType = object : TypeToken<List<Workout>>() {}.type
-            gson.fromJson(json, workoutListType)
-        } catch (e: Exception) {
-            Log.e("WorkoutsFragment", "Error parsing JSON", e)
-            emptyList() // Return an empty list in case of error
-        }
-    }
-
-    //TODO split
-    class WorkoutsAdapter(private var workouts: List<Workout>) :
+    class WorkoutsAdapter(private var workouts: List<WorkoutsGetResponse>) :
         RecyclerView.Adapter<WorkoutsAdapter.WorkoutViewHolder>() {
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): WorkoutViewHolder {
             val view =
@@ -97,7 +83,7 @@ class WorkoutsFragment : Fragment() {
             return workouts.size
         }
 
-        fun submitList(newWorkouts: List<Workout>) {
+        fun submitList(newWorkouts: List<WorkoutsGetResponse>) {
             workouts = newWorkouts
             notifyDataSetChanged()
         }
@@ -109,5 +95,8 @@ class WorkoutsFragment : Fragment() {
             val distanceMetersTextView: TextView = itemView.findViewById(R.id.distanceMetersTextView)
 
         }
+    }
+    companion object {
+        private const val TAG = "WorkoutsFragment"
     }
 }

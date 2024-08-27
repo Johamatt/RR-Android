@@ -6,7 +6,7 @@ import retrofit2.http.GET
 import retrofit2.http.Headers
 import retrofit2.http.Query
 
-interface GeoDataInterface {
+interface GeoInterface {
     @GET("places/GeoJsonPoints")
     @Headers("Content-Type: application/json")
     suspend fun getGeoJson(): Response<ResponseBody>

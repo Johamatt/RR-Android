@@ -4,6 +4,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.sport_geo_app.data.model.WorkoutsGetResponse
 import com.example.sport_geo_app.data.repository.WorkoutRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
@@ -16,8 +17,8 @@ class WorkoutsFragmentViewModel @Inject constructor(
     private val workoutRepository: WorkoutRepository
 ) : ViewModel() {
 
-    private val _getWorkoutsResult = MutableLiveData<Result<ResponseBody>>()
-    val getWorkoutsResult: LiveData<Result<ResponseBody>> = _getWorkoutsResult
+    private val _getWorkoutsResult = MutableLiveData<Result<List<WorkoutsGetResponse>>>()
+    val getWorkoutsResult: LiveData<Result<List<WorkoutsGetResponse>>> = _getWorkoutsResult
 
     fun getWorkouts(userId: Int) {
         viewModelScope.launch {
@@ -25,5 +26,4 @@ class WorkoutsFragmentViewModel @Inject constructor(
             _getWorkoutsResult.value = result
         }
     }
-
 }

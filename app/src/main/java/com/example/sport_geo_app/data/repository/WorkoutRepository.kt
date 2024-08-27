@@ -1,9 +1,11 @@
 package com.example.sport_geo_app.data.repository
 import android.util.Log
 import com.example.sport_geo_app.data.model.WorkOutsTotalResponse
+import com.example.sport_geo_app.data.model.WorkoutsGetResponse
 import com.example.sport_geo_app.data.source.WorkoutInterface
 import com.google.gson.Gson
 import com.google.gson.JsonSyntaxException
+import com.google.gson.reflect.TypeToken
 import okhttp3.RequestBody
 import okhttp3.ResponseBody
 import okhttp3.ResponseBody.Companion.toResponseBody
@@ -17,6 +19,7 @@ class WorkoutRepository @Inject constructor(
 
     private val gson = Gson()
 
+    // TODO clean later..?
     suspend fun getWorkoutsTotal(userId: Int): Result<WorkOutsTotalResponse> {
         return try {
             val response = workoutInterface.getWorkoutsTotal(userId)
@@ -44,11 +47,23 @@ class WorkoutRepository @Inject constructor(
         }
     }
 
-    suspend fun getWorkouts(userId: Int): Result<ResponseBody> {
+    suspend fun getWorkouts(userId: Int): Result<List<WorkoutsGetResponse>> {
         return try {
             val response = workoutInterface.getWorkouts(userId)
             if (response.isSuccessful) {
-                Result.success(response.body() ?: "".toResponseBody(null))
+                val responseBody = response.body()
+                if (responseBody != null) {
+                    val jsonResponse = responseBody.string()
+                    val workoutListType = object : TypeToken<List<WorkoutsGetResponse>>() {}.type
+                    try {
+                        val workouts = gson.fromJson<List<WorkoutsGetResponse>>(jsonResponse, workoutListType)
+                        Result.success(workouts)
+                    } catch (e: JsonSyntaxException) {
+                        Result.failure(Throwable("Error parsing JSON: ${e.message}"))
+                    }
+                } else {
+                    Result.failure(Throwable("Empty response body"))
+                }
             } else {
                 Result.failure(Throwable(response.errorBody()?.string() ?: response.message()))
             }
@@ -57,9 +72,6 @@ class WorkoutRepository @Inject constructor(
         }
     }
 
-
-
-
     suspend fun createWorkout(requestBody: RequestBody): Result<ResponseBody> {
         return try {
             val response = workoutInterface.createWorkout(requestBody)
@@ -67,11 +79,9 @@ class WorkoutRepository @Inject constructor(
                 Result.success(response.body()!!)
             } else {
                 val errorBody = response.errorBody()?.string() ?: response.message()
-                Log.e("WorkoutRepository", "Error response: $errorBody") // Log error response
                 Result.failure(Throwable(errorBody))
             }
         } catch (e: Exception) {
-            Log.e("WorkoutRepository", "Exception: ${e.message}", e) // Log exception
             Result.failure(e)
         }
     }

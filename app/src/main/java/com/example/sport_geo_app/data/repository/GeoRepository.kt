@@ -1,12 +1,12 @@
 package com.example.sport_geo_app.data.repository
 
-import com.example.sport_geo_app.data.source.GeoDataInterface
+import com.example.sport_geo_app.data.source.GeoInterface
 import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
-class GeoDataRepository @Inject constructor(
-    private val geoDataInterface: GeoDataInterface
+class GeoRepository @Inject constructor(
+    private val geoDataInterface: GeoInterface
 ) {
     suspend fun getGeoJson(): Result<String> {
         return try {

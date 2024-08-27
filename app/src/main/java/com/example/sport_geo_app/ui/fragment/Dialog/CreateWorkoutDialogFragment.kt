@@ -12,7 +12,7 @@ import android.widget.TextView
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.viewModels
 import com.example.sport_geo_app.R
-import com.example.sport_geo_app.data.model.WorkoutCreate
+import com.example.sport_geo_app.data.model.WorkoutCreateRequest
 import com.example.sport_geo_app.ui.viewmodel.RecordWorkoutFragmentViewModel
 import com.example.sport_geo_app.utils.Constants.USER_ID_KEY
 import com.google.gson.Gson
@@ -32,7 +32,6 @@ class CreateWorkoutDialogFragment : DialogFragment() {
     private var sport: String? = null
     private var linestring: LineString? = null
     private val recordWorkoutFragmentViewModel: RecordWorkoutFragmentViewModel by viewModels()
-    private val TAG = "CreateWorkoutDialogFragment"
     private val gson = Gson()
     @Inject
     lateinit var encryptedSharedPreferences: SharedPreferences
@@ -116,7 +115,7 @@ class CreateWorkoutDialogFragment : DialogFragment() {
             })
         }
 
-        val workoutRequest = WorkoutCreate(
+        val workoutRequest = WorkoutCreateRequest(
             userId = userId,
             name = name,
             time = time,
@@ -140,6 +139,7 @@ class CreateWorkoutDialogFragment : DialogFragment() {
         private const val ARG_LINESTRING = "linestring"
         private const val ARG_TIME = "time"
         private const val ARG_DISTANCE_TRAVELLED = "distanceTravelled"
+        private val TAG = "CreateWorkoutDialogFragment"
 
         @JvmStatic
         fun newInstance(time: String, distanceTravelled: Float, lineString: LineString) =
