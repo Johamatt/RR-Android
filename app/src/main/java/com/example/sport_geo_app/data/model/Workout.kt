@@ -26,6 +26,7 @@ data class WorkOutsTotalResponse(
     @SerializedName("totalDistanceKM") val totalDistanceKM: Double,
     @SerializedName("totalTime")  val totalTime: String,
     @SerializedName("latestWorkouts")  val latestWorkouts: List<Workout>,
+    @SerializedName("totalWorkouts") val totalWorkouts: Int
 )
 
 data class Workout(

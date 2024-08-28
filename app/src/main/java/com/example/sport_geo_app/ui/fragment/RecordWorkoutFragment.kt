@@ -20,6 +20,7 @@ import android.widget.Chronometer
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import com.example.sport_geo_app.utils.LocationListener
+import com.example.sport_geo_app.utils.simplifyPoints
 import com.mapbox.geojson.LineString
 import com.mapbox.geojson.Point
 import com.mapbox.maps.CameraOptions
@@ -177,9 +178,9 @@ class RecordWorkoutFragment : Fragment() {
 
         val formattedTime = String.format("%02d:%02d:%02d", hours, minutes, seconds)
 
-        //TODO change interval
-        // Create a LineString GeoJSON
-        val lineString = LineString.fromLngLats(locationList)
+
+        val simplifiedPoints = simplifyPoints(locationList, 0.0001)
+        val lineString = LineString.fromLngLats(simplifiedPoints)
 
         val createWorkoutDialogFragment = CreateWorkoutDialogFragment.newInstance(formattedTime, distanceTravelled, lineString)
         createWorkoutDialogFragment.show(parentFragmentManager, "CreateWorkoutDialogFragment")
@@ -190,9 +191,9 @@ class RecordWorkoutFragment : Fragment() {
     private fun createLocationRequest(): LocationRequest {
         return LocationRequest.Builder(
             Priority.PRIORITY_HIGH_ACCURACY,
-            2000
+            5000
         ).apply {
-            setMinUpdateIntervalMillis(1000)
+            setMinUpdateIntervalMillis(5000)
             setWaitForAccurateLocation(false)
         }.build()
     }

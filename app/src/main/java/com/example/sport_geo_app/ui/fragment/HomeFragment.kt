@@ -9,20 +9,24 @@ import android.view.ViewGroup
 import android.widget.Button
 import android.widget.TextView
 import android.widget.Toast
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.sport_geo_app.R
 import com.example.sport_geo_app.data.model.Workout
 import com.example.sport_geo_app.ui.activity.LoginActivity
 import com.example.sport_geo_app.ui.viewmodel.HomeFragmentViewModel
-import com.example.sport_geo_app.utils.AdManager
 import com.example.sport_geo_app.utils.Constants.USER_ID_KEY
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInClient
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import dagger.hilt.android.AndroidEntryPoint
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 import javax.inject.Inject
 
 
@@ -32,10 +36,7 @@ class HomeFragment : Fragment() {
     private lateinit var gso: GoogleSignInOptions
     private lateinit var gsc: GoogleSignInClient
     private lateinit var signOutBtn: Button
-    private lateinit var adManager: AdManager
-    private lateinit var loadAdBtn: Button
     @Inject lateinit var encryptedSharedPreferences: SharedPreferences
-
     private lateinit var workoutAdapter: WorkoutAdapter
     private lateinit var latestWorkoutsRecyclerView: RecyclerView
     private val homeFragmentViewModel: HomeFragmentViewModel by viewModels()
@@ -46,11 +47,6 @@ class HomeFragment : Fragment() {
     ): View? {
         val view = inflater.inflate(R.layout.fragment_home, container, false)
 
-        adManager = AdManager(requireContext())
-        loadAdBtn = view.findViewById(R.id.load_ad_btn)
-        loadAdBtn.setOnClickListener {
-            showRewardedAd()
-        }
         gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
             .requestEmail()
             .build()
@@ -63,11 +59,17 @@ class HomeFragment : Fragment() {
         latestWorkoutsRecyclerView = view.findViewById(R.id.latest_workouts_recyclerview)
         latestWorkoutsRecyclerView.layoutManager = LinearLayoutManager(requireContext())
 
+        val dividerItemDecoration = DividerItemDecoration(requireContext(), DividerItemDecoration.VERTICAL)
+        ContextCompat.getDrawable(requireContext(), R.drawable.custom_list_divider)?.let {
+            dividerItemDecoration.setDrawable(it)
+        }
+        latestWorkoutsRecyclerView.addItemDecoration(dividerItemDecoration)
 
         homeFragmentViewModel.getWorkoutsTotalResult.observe(viewLifecycleOwner) { result ->
             result.onSuccess { workOutsTotal ->
                 try {
                     Log.d(TAG,workOutsTotal.toString())
+                    view.findViewById<TextView>(R.id.total_workouts).text = workOutsTotal.totalWorkouts.toString();
                     view.findViewById<TextView>(R.id.total_distance).text = "${workOutsTotal.totalDistanceKM} km"
                     view.findViewById<TextView>(R.id.total_time).text = workOutsTotal.totalTime
 
@@ -96,6 +98,7 @@ class HomeFragment : Fragment() {
             val workoutName: TextView = itemView.findViewById(R.id.workout_name)
             val workoutDistance: TextView = itemView.findViewById(R.id.workout_distance)
             val workoutTime: TextView = itemView.findViewById(R.id.workout_time)
+            val workoutDate: TextView = itemView.findViewById(R.id.workout_date)
         }
 
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): WorkoutViewHolder {
@@ -110,18 +113,17 @@ class HomeFragment : Fragment() {
             holder.workoutName.text = workout.name
             holder.workoutDistance.text = "${workout.distanceMeters} km"
             holder.workoutTime.text = workout.time
+
+            val inputFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.getDefault())
+            val outputFormat = SimpleDateFormat("MMMM dd, yyyy 'at' HH:mm", Locale.getDefault())
+            val date: Date? = inputFormat.parse(workout.created_at)
+            val formattedDate = if (date != null) outputFormat.format(date) else workout.created_at
+
+            holder.workoutDate.text = formattedDate
+
         }
 
         override fun getItemCount() = workouts.size
-    }
-
-    private fun showRewardedAd() {
-        adManager.showRewardedAd { rewardItem ->
-            val rewardAmount = rewardItem.amount
-            val rewardType = rewardItem.type
-            Log.d("HomeFragment", "User earned the reward: $rewardAmount $rewardType")
-            // rewardUser(userId, rewardAmount) // Example usage of userId
-        }
     }
 
     private fun signOut() {
@@ -138,7 +140,6 @@ class HomeFragment : Fragment() {
             } else {
                 Toast.makeText(requireContext(), "Sign out failed", Toast.LENGTH_SHORT).show()
             }
-            //TODO inject errormanager
         }
     }
 
