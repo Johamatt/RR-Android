@@ -63,6 +63,10 @@ kapt {
 
 
 dependencies {
+
+    implementation (libs.glide)
+    annotationProcessor (libs.compiler)
+
     implementation(libs.androidx.espresso.intents)
     testImplementation (libs.mockk)
     androidTestImplementation (libs.mockk.android)

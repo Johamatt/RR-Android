@@ -37,6 +37,7 @@ data class Workout(
     @SerializedName("distanceMeters") val distanceMeters: Double,
     @SerializedName("time") val time: String,
     @SerializedName("created_at") val created_at: String,
+    @SerializedName("staticMapUrl") val staticMapUrl: String
 )
 
 

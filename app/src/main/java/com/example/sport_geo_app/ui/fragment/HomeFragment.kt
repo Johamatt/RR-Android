@@ -7,6 +7,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
+import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.core.content.ContextCompat
@@ -15,6 +16,7 @@ import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.bumptech.glide.Glide
 import com.example.sport_geo_app.R
 import com.example.sport_geo_app.data.model.Workout
 import com.example.sport_geo_app.ui.activity.LoginActivity
@@ -68,7 +70,6 @@ class HomeFragment : Fragment() {
         homeFragmentViewModel.getWorkoutsTotalResult.observe(viewLifecycleOwner) { result ->
             result.onSuccess { workOutsTotal ->
                 try {
-                    Log.d(TAG,workOutsTotal.toString())
                     view.findViewById<TextView>(R.id.total_workouts).text = workOutsTotal.totalWorkouts.toString();
                     view.findViewById<TextView>(R.id.total_distance).text = "${workOutsTotal.totalDistanceKM} km"
                     view.findViewById<TextView>(R.id.total_time).text = workOutsTotal.totalTime
@@ -99,6 +100,7 @@ class HomeFragment : Fragment() {
             val workoutDistance: TextView = itemView.findViewById(R.id.workout_distance)
             val workoutTime: TextView = itemView.findViewById(R.id.workout_time)
             val workoutDate: TextView = itemView.findViewById(R.id.workout_date)
+            val workoutMap: ImageView = itemView.findViewById(R.id.workout_map)
         }
 
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): WorkoutViewHolder {
@@ -121,6 +123,9 @@ class HomeFragment : Fragment() {
 
             holder.workoutDate.text = formattedDate
 
+            Glide.with(holder.itemView.context)
+                .load(workout.staticMapUrl)
+                .into(holder.workoutMap)
         }
 
         override fun getItemCount() = workouts.size
