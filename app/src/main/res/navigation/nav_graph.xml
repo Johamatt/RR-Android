@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/nav_graph"
+    app:startDestination="@id/homeFragment">
+
+    <fragment
+        android:id="@+id/homeFragment"
+        android:name="com.example.sport_geo_app.ui.fragment.HomeFragment"
+        android:label="Home"
+        tools:layout="@layout/fragment_home" />
+
+    <fragment
+        android:id="@+id/mapFragment"
+        android:name="com.example.sport_geo_app.ui.fragment.MapFragment"
+        android:label="Map"
+        tools:layout="@layout/fragment_map">
+        <!-- Action to navigate to a dialog fragment
+        <action
+            android:id="@+id/action_homeFragment_to_exampleDialogFragment"
+            app:destination="@id/exampleDialogFragment" /> -->
+    </fragment>
+
+    <fragment
+        android:id="@+id/recordFragment"
+        android:name="com.example.sport_geo_app.ui.fragment.RecordWorkoutFragment"
+        android:label="Record"
+        tools:layout="@layout/fragment_record_workout" />
+
+    <fragment
+        android:id="@+id/workoutsFragment"
+        android:name="com.example.sport_geo_app.ui.fragment.WorkoutsFragment"
+        android:label="Workouts"
+        tools:layout="@layout/fragment_workouts" />
+
+</navigation>

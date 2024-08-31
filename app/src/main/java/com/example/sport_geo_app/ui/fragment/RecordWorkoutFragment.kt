@@ -109,7 +109,6 @@ class RecordWorkoutFragment : Fragment() {
         distanceTextView = view.findViewById(R.id.textViewDistance)
         speedTextView = view.findViewById(R.id.textViewSpeed)
         chronometer = view.findViewById(R.id.chronometer)
-
     }
 
     private fun setupButtonListeners() {

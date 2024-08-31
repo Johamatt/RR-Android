@@ -63,6 +63,17 @@ kapt {
 
 
 dependencies {
+    // Views/Fragments integration
+    implementation("androidx.navigation:navigation-fragment:2.7.7")
+    implementation("androidx.navigation:navigation-ui:2.7.7")
+
+    // Feature module support for Fragments
+    implementation("androidx.navigation:navigation-dynamic-features-fragment:2.7.7")
+
+    // Testing Navigation
+    androidTestImplementation("androidx.navigation:navigation-testing:2.7.7")
+
+
 
     implementation (libs.glide)
     annotationProcessor (libs.compiler)

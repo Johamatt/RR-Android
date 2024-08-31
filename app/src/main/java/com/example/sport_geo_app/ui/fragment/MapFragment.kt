@@ -161,7 +161,13 @@ class MapFragment : Fragment() {
     private fun setupObservers() {
         mapFragmentViewModel.geoDataResults.observe(viewLifecycleOwner) { result ->
             result.onSuccess { geoJsonString ->
-                addClusteredGeoJsonSource(mapView.mapboxMap.style!!, geoJsonString)
+                mapView.mapboxMap.getStyle { style ->
+                    if (style != null) {
+                        addClusteredGeoJsonSource(style, geoJsonString)
+                    } else {
+                        Log.e(TAG, "Map style is not loaded yet")
+                    }
+                }
             }.onFailure { throwable ->
                 Log.d(TAG, throwable.toString())
                 // TODO inject errormanager
