@@ -52,11 +52,6 @@ MAPBOX_DOWNLOADS_TOKEN=sk.1234qwerty....
 ### Other developer-config.xml values:
 1. Add following lines to developer-config.xml (ADMOB google test unit & backend IP)
 ```
-<string name="EC2_PUBLIC_IP">https://10.0.2.2:3000</string>
+<string name="EC2_PUBLIC_IP">http://10.0.2.2:3000</string>
 <string name="ADMOB_APP_ID">ca-app-pub-3940256099942544/5224354917</string>
 ```
-
-### Configure SSL
-1. make self-signed certificate using openssl
-2. create new android resource directory res/raw and paste cert.pem
-

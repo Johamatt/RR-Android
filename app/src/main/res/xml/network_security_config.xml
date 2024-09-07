@@ -2,15 +2,16 @@
 <network-security-config>
     <domain-config cleartextTrafficPermitted="true">
         <domain includeSubdomains="true">10.0.2.2</domain>
-        <!--     <domain includeSubdomains="true">10.0.2.2:3000</domain> -->
+        <domain includeSubdomains="true">10.0.2.2:3000</domain>
         <domain includeSubdomains="true">192.168.67.213</domain>
         <domain includeSubdomains="true">16.171.143.191</domain>
         <domain includeSubdomains="true">localhost</domain>
-
-        <domain includeSubdomains="true">10.0.2.2:3000</domain>
-        <trust-anchors>
-            <certificates src="@raw/cert"/>
-        </trust-anchors>
-    </domain-config>
-</network-security-config>
+        <!--
+                <domain includeSubdomains="true">10.0.2.2:3000</domain>
+                <trust-anchors>
+                    <certificates src="@raw/cert"/>
+                </trust-anchors>
+                -->
+            </domain-config>
+        </network-security-config>
 
