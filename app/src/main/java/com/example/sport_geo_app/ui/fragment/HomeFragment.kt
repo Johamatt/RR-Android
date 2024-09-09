@@ -71,9 +71,12 @@ class HomeFragment : Fragment() {
             result.onSuccess { workOutsTotal ->
                 try {
                     view.findViewById<TextView>(R.id.total_workouts).text = workOutsTotal.totalWorkouts.toString();
-                    view.findViewById<TextView>(R.id.total_distance).text = "${workOutsTotal.totalDistanceKM} km"
                     view.findViewById<TextView>(R.id.total_time).text = workOutsTotal.totalTime
-
+                    view.findViewById<TextView>(R.id.total_distance).text = if (workOutsTotal.totalDistance >= 1000) {
+                        String.format("%.2f km", workOutsTotal.totalDistance / 1000f)
+                    } else {
+                        "${workOutsTotal.totalDistance} m"
+                    }
                     workoutAdapter = WorkoutAdapter(workOutsTotal.latestWorkouts)
                     latestWorkoutsRecyclerView.adapter = workoutAdapter
                 } catch (e: Exception) {
@@ -113,8 +116,13 @@ class HomeFragment : Fragment() {
         override fun onBindViewHolder(holder: WorkoutViewHolder, position: Int) {
             val workout = workouts[position]
             holder.workoutName.text = workout.name
-            holder.workoutDistance.text = "${workout.distanceMeters} km"
             holder.workoutTime.text = workout.time
+            holder.workoutDistance.text = if (workout.distanceMeters >= 1000) {
+                String.format("%.2f km", workout.distanceMeters / 1000f)
+            } else {
+                "${workout.distanceMeters} m"
+            }
+
 
             val inputFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.getDefault())
             val outputFormat = SimpleDateFormat("MMMM dd, yyyy 'at' HH:mm", Locale.getDefault())

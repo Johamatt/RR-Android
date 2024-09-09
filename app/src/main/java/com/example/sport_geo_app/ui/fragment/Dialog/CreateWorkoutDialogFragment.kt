@@ -28,7 +28,7 @@ import javax.inject.Inject
 class CreateWorkoutDialogFragment : DialogFragment() {
     private var name: String? = null
     private var time: String = ""
-    private var distanceMeters: Float = 0.0F
+    private var distanceMeters: Int = 0
     private var sport: String? = null
     private var linestring: LineString? = null
     private val recordWorkoutFragmentViewModel: RecordWorkoutFragmentViewModel by viewModels()
@@ -40,7 +40,7 @@ class CreateWorkoutDialogFragment : DialogFragment() {
         super.onCreate(savedInstanceState)
         arguments?.let {
             time = it.getString(ARG_TIME).toString()
-            distanceMeters = it.getFloat(ARG_DISTANCE_TRAVELLED)
+            distanceMeters = it.getInt(ARG_DISTANCE_TRAVELLED)
             val coordinatesJson = it.getString(ARG_LINESTRING)
             linestring = coordinatesJson?.let { json ->
                 LineString.fromJson(json)
@@ -69,7 +69,9 @@ class CreateWorkoutDialogFragment : DialogFragment() {
         return inflater.inflate(R.layout.fragment_createworkout, container, false).apply {
             findViewById<TextView>(R.id.workout_name).text = name
             findViewById<TextView>(R.id.workout_sport).text = sport
-            findViewById<TextView>(R.id.workout_distanceTravelled).text = String.format("%.2f km", distanceMeters)
+            findViewById<TextView>(R.id.workout_distanceTravelled).text = String.format(
+                distanceMeters.toString()
+            )
             findViewById<TextView>(R.id.workout_time).text = time
             findViewById<Button>(R.id.save_button).setOnClickListener {
                 val name = findViewById<TextView>(R.id.workout_name).text.toString()
@@ -91,7 +93,7 @@ class CreateWorkoutDialogFragment : DialogFragment() {
     private fun saveWorkoutDetails(
         name: String,
         time: String,
-        distanceMeters: Float,
+        distanceMeters: Int,
         sport: String,
         lineString: LineString?
     ) {
@@ -142,11 +144,11 @@ class CreateWorkoutDialogFragment : DialogFragment() {
         private val TAG = "CreateWorkoutDialogFragment"
 
         @JvmStatic
-        fun newInstance(time: String, distanceTravelled: Float, lineString: LineString) =
+        fun newInstance(time: String, distanceTravelled: Int, lineString: LineString) =
             CreateWorkoutDialogFragment().apply {
                 arguments = Bundle().apply {
                     putString(ARG_TIME, time)
-                    putFloat(ARG_DISTANCE_TRAVELLED, distanceTravelled)
+                    putInt(ARG_DISTANCE_TRAVELLED, distanceTravelled)
                     putString(ARG_LINESTRING, lineString.toJson()) // Add LineString to arguments
                 }
             }

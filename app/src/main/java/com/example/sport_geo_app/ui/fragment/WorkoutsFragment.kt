@@ -76,7 +76,7 @@ class WorkoutsFragment : Fragment() {
             holder.nameTextView.text = workout.name
             holder.timeTextView.text = workout.time
             holder.sportTextView.text = workout.sport
-            holder.distanceMetersTextView.text = String.format("%.2f", workout.distanceMeters)
+            holder.distanceMetersTextView.text = workout.distanceMeters.toString()
         }
 
         override fun getItemCount(): Int {

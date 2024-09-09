@@ -1,26 +1,32 @@
 package com.example.sport_geo_app.ui.fragment
-import androidx.fragment.app.Fragment
+
 import android.Manifest
 import android.content.pm.PackageManager
 import android.location.Location
 import android.os.Bundle
 import android.os.Looper
+import android.os.SystemClock
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
-import android.widget.TextView
-import androidx.core.app.ActivityCompat
-import com.google.android.gms.location.*
-import com.example.sport_geo_app.R
-import com.example.sport_geo_app.ui.fragment.dialog.CreateWorkoutDialogFragment
-import android.os.SystemClock
 import android.widget.Chronometer
+import android.widget.TextView
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.app.ActivityCompat
+import androidx.fragment.app.Fragment
+import com.example.sport_geo_app.R
+import com.example.sport_geo_app.ui.fragment.dialog.CreateWorkoutDialogFragment
 import com.example.sport_geo_app.utils.LocationListener
 import com.example.sport_geo_app.utils.simplifyPoints
+import com.google.android.gms.location.FusedLocationProviderClient
+import com.google.android.gms.location.LocationCallback
+import com.google.android.gms.location.LocationRequest
+import com.google.android.gms.location.LocationResult
+import com.google.android.gms.location.LocationServices
+import com.google.android.gms.location.Priority
 import com.mapbox.geojson.LineString
 import com.mapbox.geojson.Point
 import com.mapbox.maps.CameraOptions
@@ -67,13 +73,14 @@ class RecordWorkoutFragment : Fragment() {
     }
 
     private fun setupPermissions() {
-        requestPermissionLauncher = registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { permissions ->
-            if (permissions.values.all { it }) {
-                initializeMap()
-            } else {
-                // Handle permissions not granted
+        requestPermissionLauncher =
+            registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { permissions ->
+                if (permissions.values.all { it }) {
+                    initializeMap()
+                } else {
+                    // Handle permissions not granted
+                }
             }
-        }
 
         requestPermissionLauncher.launch(
             arrayOf(
@@ -180,8 +187,9 @@ class RecordWorkoutFragment : Fragment() {
 
         val simplifiedPoints = simplifyPoints(locationList, 0.0001)
         val lineString = LineString.fromLngLats(simplifiedPoints)
-
-        val createWorkoutDialogFragment = CreateWorkoutDialogFragment.newInstance(formattedTime, distanceTravelled, lineString)
+        val distanceMeters = (distanceTravelled).toInt()
+        val createWorkoutDialogFragment =
+            CreateWorkoutDialogFragment.newInstance(formattedTime, distanceMeters, lineString)
         createWorkoutDialogFragment.show(parentFragmentManager, "CreateWorkoutDialogFragment")
 
         resetWorkoutData()
@@ -234,7 +242,8 @@ class RecordWorkoutFragment : Fragment() {
         val point = Point.fromLngLat(location.longitude, location.latitude)
         locationList.add(point)
 
-        distanceTextView.text = String.format("%.2f m", distanceTravelled)
+        distanceTextView.text = String.format("%d m", (distanceTravelled).toInt())
+
         updateSpeed()
     }
 
