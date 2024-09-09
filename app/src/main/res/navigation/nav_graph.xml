@@ -34,4 +34,11 @@
         android:label="Workouts"
         tools:layout="@layout/fragment_workouts" />
 
+    <fragment
+        android:id="@+id/getStartedFragment"
+        android:name="com.example.sport_geo_app.ui.fragment.GetStartedFragment"
+        android:label="Get Started"
+        tools:layout="@layout/fragment_getstarted" />
+
+
 </navigation>

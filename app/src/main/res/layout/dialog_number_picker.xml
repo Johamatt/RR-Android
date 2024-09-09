@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:gravity="center_horizontal"
+    android:padding="16dp">
+
+    <!-- Container for NumberPicker and TextView -->
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:layout_gravity="center">
+
+        <NumberPicker
+            android:id="@+id/numberPicker"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="4dp" />
+
+        <TextView
+            android:id="@+id/unitTextView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="unit"
+            android:textSize="18sp"
+            android:layout_marginStart="4dp" />
+
+    </LinearLayout>
+
+    <!-- Buttons container -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:layout_marginTop="16dp">
+
+        <Button
+            android:id="@+id/cancel_button"
+            android:textColor="@color/black"
+            android:backgroundTint="@color/white"
+            style="?attr/materialButtonOutlinedStyle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:drawableTint="@color/black"
+            android:drawableEnd="@drawable/baseline_arrow_right_alt_24"
+            android:text="Cancel"
+            android:fontFamily="@font/bebasneue_regular"
+            android:textSize="18sp"
+            android:drawablePadding="8dp"
+            android:gravity="center_vertical" />
+
+        <Button
+            android:id="@+id/save_button"
+            android:textColor="@color/white"
+            android:backgroundTint="@color/black"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:fontFamily="@font/bebasneue_regular"
+            android:drawableTint="@color/white"
+            android:drawableEnd="@drawable/baseline_arrow_right_alt_24"
+            android:gravity="center_vertical"
+            android:textSize="18sp"
+            android:text="Save" />
+
+    </LinearLayout>
+
+</LinearLayout>

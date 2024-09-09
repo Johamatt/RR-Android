@@ -19,16 +19,24 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
 
 
+
         val navHostFragment =
             supportFragmentManager.findFragmentById(R.id.nav_host_fragment) as NavHostFragment
         val navController = navHostFragment.navController
         findViewById<BottomNavigationView>(R.id.bottom_navigation)
             .setupWithNavController(navController)
 
+        // Example: Navigate to GetStartedFragment if this is the first launch
+        val isFirstTimeUser = checkIfFirstTimeUser() // Replace with your logic
+        if (isFirstTimeUser) {
+            navController.navigate(R.id.getStartedFragment)
+        }
+
+
         navController.addOnDestinationChangedListener { _, destination, _ ->
             val toolbar: Toolbar = findViewById(R.id.toolbar)
             when (destination.id) {
-                R.id.recordFragment, R.id.mapFragment -> {
+                R.id.recordFragment, R.id.mapFragment, R.id.getStartedFragment -> {
                     toolbar.visibility = View.GONE
                 }
                 else -> {
@@ -38,6 +46,11 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    private fun checkIfFirstTimeUser(): Boolean {
+        // TODO
+        // Add your logic to determine if it's the first time user (e.g., SharedPreferences)
+        return true
+    }
 
 
     override fun onSupportNavigateUp(): Boolean {
