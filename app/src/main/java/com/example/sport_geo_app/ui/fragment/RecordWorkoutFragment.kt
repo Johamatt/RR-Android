@@ -18,6 +18,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.app.ActivityCompat
 import androidx.fragment.app.Fragment
 import com.example.sport_geo_app.R
+import com.example.sport_geo_app.di.Toaster
 import com.example.sport_geo_app.ui.fragment.dialog.CreateWorkoutDialogFragment
 import com.example.sport_geo_app.utils.LocationListener
 import com.example.sport_geo_app.utils.simplifyPoints
@@ -32,6 +33,7 @@ import com.mapbox.geojson.Point
 import com.mapbox.maps.CameraOptions
 import com.mapbox.maps.MapView
 import com.mapbox.maps.Style
+import javax.inject.Inject
 
 class RecordWorkoutFragment : Fragment() {
 
@@ -49,6 +51,8 @@ class RecordWorkoutFragment : Fragment() {
     private lateinit var mapView: MapView
     private lateinit var requestPermissionLauncher: ActivityResultLauncher<Array<String>>
     private var lastLocation: Location? = null
+    @Inject
+    lateinit var toaster: Toaster
 
     private var distanceTravelled = 0.0f
     private var isRunning = false
@@ -78,7 +82,7 @@ class RecordWorkoutFragment : Fragment() {
                 if (permissions.values.all { it }) {
                     initializeMap()
                 } else {
-                    // Handle permissions not granted
+                    toaster.showToast("Location permission not granted")
                 }
             }
 
@@ -230,7 +234,7 @@ class RecordWorkoutFragment : Fragment() {
                 Looper.getMainLooper()
             )
         } catch (e: SecurityException) {
-            Log.d(TAG, e.toString())
+            toaster.showToast(e.toString())
         }
     }
 

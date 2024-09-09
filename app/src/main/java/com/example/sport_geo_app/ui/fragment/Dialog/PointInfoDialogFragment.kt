@@ -10,7 +10,7 @@ import android.widget.TextView
 import androidx.fragment.app.DialogFragment
 import com.example.sport_geo_app.R
 
-class PointInfoDialogFragment : DialogFragment() {
+class PointInfoDialogFragment : DialogFragment() { //TODO change to material dialog
 
     companion object {
         private const val ARG_NAME = "name"

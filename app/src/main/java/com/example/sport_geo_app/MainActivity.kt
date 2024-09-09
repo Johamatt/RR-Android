@@ -19,15 +19,13 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
 
 
-
         val navHostFragment =
             supportFragmentManager.findFragmentById(R.id.nav_host_fragment) as NavHostFragment
         val navController = navHostFragment.navController
         findViewById<BottomNavigationView>(R.id.bottom_navigation)
             .setupWithNavController(navController)
 
-        // Example: Navigate to GetStartedFragment if this is the first launch
-        val isFirstTimeUser = checkIfFirstTimeUser() // Replace with your logic
+        val isFirstTimeUser = checkIfFirstTimeUser()
         if (isFirstTimeUser) {
             navController.navigate(R.id.getStartedFragment)
         }
@@ -48,7 +46,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun checkIfFirstTimeUser(): Boolean {
         // TODO
-        // Add your logic to determine if it's the first time user (e.g., SharedPreferences)
+        // logic to determine if first time user (e.g. SharedPreferences)
         return true
     }
 

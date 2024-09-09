@@ -19,6 +19,7 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import com.example.sport_geo_app.R
 import com.example.sport_geo_app.data.model.PointPin
+import com.example.sport_geo_app.di.Toaster
 import com.example.sport_geo_app.ui.fragment.dialog.BottomSheetFragment
 import com.example.sport_geo_app.ui.viewmodel.MapFragmentViewModel
 import com.example.sport_geo_app.utils.BitmapUtils
@@ -57,7 +58,7 @@ class MapFragment : Fragment() {
     private lateinit var viewAnnotationManager: ViewAnnotationManager
     private lateinit var locationListener: LocationListener
     private lateinit var requestPermissionLauncher: ActivityResultLauncher<Array<String>>
-
+    @Inject lateinit var toaster: Toaster
     private val mapStyles = listOf(
         Style.MAPBOX_STREETS,
         Style.SATELLITE,
@@ -136,7 +137,7 @@ class MapFragment : Fragment() {
                 .build()
             mapView.mapboxMap.setCamera(cameraPosition)
         } else {
-            // Handle the case where the current location is null
+            toaster.showToast("current location is null")
         }
     }
 
@@ -146,7 +147,7 @@ class MapFragment : Fragment() {
             if (allPermissionsGranted) {
                 initializeMap()
             } else {
-                // Handle permissions not granted
+                toaster.showToast("Location permission not granted")
             }
         }
 
@@ -169,8 +170,7 @@ class MapFragment : Fragment() {
                     }
                 }
             }.onFailure { throwable ->
-                Log.d(TAG, throwable.toString())
-                // TODO inject errormanager
+                toaster.showToast(throwable.toString())
             }
         }
     }
@@ -234,7 +234,7 @@ class MapFragment : Fragment() {
             )
             addMapLayers(style)
         } else {
-            Log.e(TAG, "GeoJSON data is empty")
+            toaster.showToast("GeoJSON data is empty")
         }
     }
 

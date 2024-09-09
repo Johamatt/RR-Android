@@ -12,6 +12,7 @@ import android.widget.TextView
 import androidx.fragment.app.viewModels
 import com.example.sport_geo_app.R
 import com.example.sport_geo_app.data.model.WorkoutsGetResponse
+import com.example.sport_geo_app.di.Toaster
 import com.example.sport_geo_app.ui.viewmodel.WorkoutsFragmentViewModel
 import com.example.sport_geo_app.utils.Constants.USER_ID_KEY
 import com.google.gson.Gson
@@ -28,6 +29,7 @@ class WorkoutsFragment : Fragment() {
     private lateinit var workoutsAdapter: WorkoutsAdapter
     @Inject
     lateinit var encryptedSharedPreferences: SharedPreferences
+    @Inject lateinit var toaster: Toaster
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -46,9 +48,11 @@ class WorkoutsFragment : Fragment() {
                 try {
                     workoutsAdapter.submitList(workoutsData)
                 } catch (e: Exception) {
+                    toaster.showToast(e.toString())
                     Log.e("WorkoutsFragment", "Error updating UI", e)
                 }
             }.onFailure { throwable ->
+                toaster.showToast(throwable.toString())
                 Log.e("WorkoutsFragment", "Failed to get workouts", throwable)
             }
         }
@@ -57,7 +61,7 @@ class WorkoutsFragment : Fragment() {
         if (userId != -1) {
             workoutsFragmentViewModel.getWorkouts(userId)
         } else {
-            //    User ID not found
+            encryptedSharedPreferences.edit().clear().apply();
         }
 
         return view

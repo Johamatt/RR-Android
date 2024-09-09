@@ -9,7 +9,6 @@ import android.view.ViewGroup
 import android.widget.Button
 import android.widget.ImageView
 import android.widget.TextView
-import android.widget.Toast
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
@@ -19,6 +18,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.example.sport_geo_app.R
 import com.example.sport_geo_app.data.model.Workout
+import com.example.sport_geo_app.di.Toaster
 import com.example.sport_geo_app.ui.activity.LoginActivity
 import com.example.sport_geo_app.ui.viewmodel.HomeFragmentViewModel
 import com.example.sport_geo_app.utils.Constants.USER_ID_KEY
@@ -42,6 +42,8 @@ class HomeFragment : Fragment() {
     private lateinit var workoutAdapter: WorkoutAdapter
     private lateinit var latestWorkoutsRecyclerView: RecyclerView
     private val homeFragmentViewModel: HomeFragmentViewModel by viewModels()
+
+    @Inject lateinit var toaster: Toaster
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -80,17 +82,19 @@ class HomeFragment : Fragment() {
                     workoutAdapter = WorkoutAdapter(workOutsTotal.latestWorkouts)
                     latestWorkoutsRecyclerView.adapter = workoutAdapter
                 } catch (e: Exception) {
-                    Log.e(TAG, "Exception in setting text: ${e.message}", e)
+                    toaster.showToast("Exception in setting text: ${e.message}")
                 }
             }.onFailure { throwable ->
-                Log.e(TAG, "Failed to get workout totals: ${throwable.message}", throwable)
+                toaster.showToast("Failed to get workout totals: ${throwable.message}")
             }
         }
+
+
         val userId = encryptedSharedPreferences.getInt(USER_ID_KEY, -1)
         if (userId != -1) {
             homeFragmentViewModel.getWorkoutsTotal(userId)
         } else {
-            //    User ID not found
+            encryptedSharedPreferences.edit().clear().apply();
         }
         return view
     }
@@ -151,7 +155,7 @@ class HomeFragment : Fragment() {
                 startActivity(Intent(activity, LoginActivity::class.java))
                 activity?.finish()
             } else {
-                Toast.makeText(requireContext(), "Sign out failed", Toast.LENGTH_SHORT).show()
+                toaster.showToast("Sign out failed")
             }
         }
     }

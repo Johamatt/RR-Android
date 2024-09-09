@@ -10,7 +10,7 @@ import com.example.sport_geo_app.R
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 
 
-    class BottomSheetFragment : BottomSheetDialogFragment() {
+    class BottomSheetFragment : BottomSheetDialogFragment() { //TODO change to material dialog
 
         companion object {
             private const val ARG_NAME = "arg_name"

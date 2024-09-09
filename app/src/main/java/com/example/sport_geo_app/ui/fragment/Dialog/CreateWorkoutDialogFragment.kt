@@ -25,7 +25,7 @@ import okhttp3.RequestBody.Companion.toRequestBody
 import javax.inject.Inject
 
 @AndroidEntryPoint
-class CreateWorkoutDialogFragment : DialogFragment() {
+class CreateWorkoutDialogFragment : DialogFragment() { //TODO change to material dialog
     private var name: String? = null
     private var time: String = ""
     private var distanceMeters: Int = 0
